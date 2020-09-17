@@ -1,3 +1,5 @@
+// rust-lang
+
 fn main() {
     println!("application rustigy started!");
 
