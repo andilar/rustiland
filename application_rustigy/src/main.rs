@@ -9,7 +9,7 @@ fn main() {
 
         println!("{}", x);
 
-        if x % 5 == 0{
+        if x % 13 == 0{
             done = true;
         }
     }
