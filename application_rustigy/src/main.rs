@@ -1,7 +1,7 @@
 // rust-lang
 
 fn main() {
-    println!("application rustigy started!");
+    println!("application rustigy started! ");
 
     let mut x = 498;
     let mut done = false;
