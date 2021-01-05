@@ -1,3 +1,11 @@
+
+// following a tutorial from https://crates.io/crates/rust_gpiozero
+
+use rust_gpiozero::*;
+
 fn main() {
-    println!("Hello, wooorld!");
+    // Create a new LED attached to Pin 17
+    let mut led = LED::new(17);
+    // blink the LED
+    led.blink(2.0, 3.0);
 }
