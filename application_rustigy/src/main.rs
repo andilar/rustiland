@@ -3,11 +3,11 @@
 fn main() {
     println!("application rustigy started! ");
 
-    let mut x = 498;
+    let mut x = 49865547671119i64;
     let mut done = false;
 
     while !done {
-        x += x -3;
+        x += x -5;
 
         println!("{}", x);
 
