@@ -3,6 +3,7 @@
 fn main() {
     println!("application rustigy started! ");
 
+<<<<<<< Updated upstream
     let mut x = 49865547671119i64;
     let mut done = false;
 
