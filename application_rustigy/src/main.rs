@@ -3,11 +3,12 @@ use crossbeam;
 
 fn main() {
     println!("application rustigy started! ");
-
     let arr = &[1, 25, -4, 10, 1223,1,112332,123];
     let max = find_max(arr);
     assert_eq!(max, Some(25));
 }
+
+
 
 fn find_max(arr: &[i32]) -> Option<i32> {
     const THRESHOLD: usize = 2;
