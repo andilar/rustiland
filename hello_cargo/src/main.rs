@@ -1,11 +1,13 @@
+// https://www.rust-lang.org/learn/get-started
 
-// following a tutorial from https://crates.io/crates/rust_gpiozero
-
-use rust_gpiozero::*;
+use ferris_says::say;
+use std::io::{stdout, BufWriter};
 
 fn main() {
-    // Create a new LED attached to Pin 17
-    let mut led = LED::new(17);
-    // blink the LED
-    led.blink(2.0, 3.0);
+    let stdout = stdout();
+    let message = String::from("Hello fellow Rustaceans!");
+    let width = message.chars().count();
+
+    let mut writer = BufWriter::new(stdout.lock());
+    say(message.as_bytes(), width, &mut writer).unwrap();
 }
