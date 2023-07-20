@@ -1,14 +1,11 @@
 
 
 fn main() {
-    let string = String::from("127.0.0.1:8080");
-    let string_slice = &string[10..];
+    let string: String = String::from("127.0.0.1:8080");
+    let string_slice: &str = &string[10..];
 
-    dbg!(&string);
-    dbg!(string_slice);
-
-    // let server = Server::new("127.0.0.1:8080");
-    // server.run();
+    let server: Server = Server::new(string);
+    server.run();
 }
 
 struct Server{
