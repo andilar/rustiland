@@ -1,6 +1,6 @@
 use crate::http::method;
 
-use super::method::Method;
+use super::method::{Method, MethodError};
 use core::str;
 use std::convert::TryFrom;
 use std::error::Error;
@@ -22,12 +22,13 @@ impl TryFrom<&[u8]> for Request {
 
         let (method, request) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
         let (path, request) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
-
         let (protocol, _) = get_next_word(request).ok_or(ParseError::InvalidRequest)?;
 
         if protocol != "HTTP/1.1" {
             return Err(ParseError::InvalidProtocol);
         }
+
+        let method: Method = method.parse()?;
 
         unimplemented!()
     }
@@ -58,6 +59,12 @@ impl ParseError {
             Self::InvalidProtocol => "Invalid Protocol",
             Self::InvalidMethod => "Invalid Method",
         }
+    }
+}
+
+impl From<MethodError> for ParseError {
+    fn from(_: MethodError) -> Self {
+        Self::InvalidMethod
     }
 }
 
