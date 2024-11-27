@@ -24,7 +24,7 @@ impl Handler for WebsiteHandler {
         match request.method() {
             Method::GET => match request.path() {
                 "/" => Response::new(StatusCode::Ok, self.read_file("index.html")),
-                "/hello" => Response::new(StatusCode::Ok, Some("<h1>Hello</h1>".to_string())),
+                "/hello" => Response::new(StatusCode::Ok, self.read_file("hello.html")),
                 _ => Response::new(StatusCode::NotFound, None),
             },
             _ => Response::new(StatusCode::NotFound, None),
