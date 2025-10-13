@@ -1,0 +1,37 @@
+[package]
+name = "restor"
+version = "0.1.0"
+edition = "2021"
+description = "A RESTful API server built with Axum"
+authors = ["Your Name <your.email@example.com>"]
+license = "MIT"
+repository = "https://github.com/yourusername/restor"
+keywords = ["web", "api", "axum", "rest"]
+categories = ["web-programming"]
+
+[dependencies]
+axum = "0.7"
+serde = { version = "1.0", features = ["derive"] }
+tokio = { version = "1.0", features = ["full"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+tracing-appender = "0.2"
+
+[dev-dependencies]
+axum-test = "14.0"
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.dev]
+debug = true
+opt-level = 0
+
+[[bin]]
+name = "restor"
+path = "src/main.rs"
