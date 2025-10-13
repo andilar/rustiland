@@ -34,24 +34,26 @@ fn parse_usb_item(item: &Value, indent: usize) {
         println!("{}🔌 {}", prefix, name);
     }
 
-    // Possible field names for transfer speed
-    let possible_keys = [
+    // All possible fields that may contain link speed info on macOS
+    let possible_speed_keys = [
         "speed",
         "device_speed",
+        "controller_speed",
         "current_speed",
         "link_speed",
-        "controller_speed",
         "bus_speed",
-        "Speed"
+        "USBDeviceKeyLinkSpeed", // ✅ found in your JSON
+        "USBDeviceKeyCurrentSpeed",
+        "USBDeviceKeyBusSpeed"
     ];
 
-    for key in &possible_keys {
+    for key in &possible_speed_keys {
         if let Some(speed) = item.get(*key).and_then(|v| v.as_str()) {
             println!("{}   📊 Data rate: {} (from \"{}\")", prefix, speed, key);
         }
     }
 
-    // Recursively check child USB devices
+    // Recursively handle nested USB devices
     if let Some(children) = item.get("_items").and_then(|v| v.as_array()) {
         for child in children {
             parse_usb_item(child, indent + 1);
