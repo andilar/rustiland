@@ -2,31 +2,28 @@ use std::process::Command;
 use serde_json::Value;
 
 fn main() {
-    // system_profiler mit JSON-Ausgabe
+    // Run system_profiler with JSON output
     let output = Command::new("system_profiler")
         .arg("SPUSBHostDataType")
         .arg("-json")
         .output()
-        .expect("Fehler beim Ausführen von system_profiler");
+        .expect("Failed to run system_profiler");
 
     if !output.status.success() {
-        eprintln!("system_profiler fehlgeschlagen");
+        eprintln!("system_profiler command failed");
         return;
     }
 
     let stdout = String::from_utf8_lossy(&output.stdout);
+    let data: Value = serde_json::from_str(&stdout).expect("Failed to parse JSON");
 
-    // JSON parsen
-    let data: Value = serde_json::from_str(&stdout).expect("Fehler beim Parsen des JSON");
-
-    // Zugriff auf das USB-Array
     if let Some(items) = data.get("SPUSBHostDataType").and_then(|v| v.as_array()) {
-        println!("Gefundene USB-Geräte:");
+        println!("🔍 Detected USB connections:\n");
         for item in items {
             parse_usb_item(item, 0);
         }
     } else {
-        println!("Keine USB-Daten gefunden.");
+        println!("No USB data found.");
     }
 }
 
@@ -37,11 +34,24 @@ fn parse_usb_item(item: &Value, indent: usize) {
         println!("{}🔌 {}", prefix, name);
     }
 
-    if let Some(speed) = item.get("speed").and_then(|v| v.as_str()) {
-        println!("{}   📊 Geschwindigkeit: {}", prefix, speed);
+    // Possible field names for transfer speed
+    let possible_keys = [
+        "speed",
+        "device_speed",
+        "current_speed",
+        "link_speed",
+        "controller_speed",
+        "bus_speed",
+        "Speed"
+    ];
+
+    for key in &possible_keys {
+        if let Some(speed) = item.get(*key).and_then(|v| v.as_str()) {
+            println!("{}   📊 Data rate: {} (from \"{}\")", prefix, speed, key);
+        }
     }
 
-    // Wenn das Gerät untergeordnete USB-Objekte hat
+    // Recursively check child USB devices
     if let Some(children) = item.get("_items").and_then(|v| v.as_array()) {
         for child in children {
             parse_usb_item(child, indent + 1);
