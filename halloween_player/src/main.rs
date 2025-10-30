@@ -129,7 +129,7 @@ async fn play_laugh() -> Result<HttpResponse> {
     }
 }
 
-// Flexibler Endpunkt zum Abspielen beliebiger Dateien aus /home/pi/audio
+// Flexibler Endpunkt zum Abspielen beliebiger Dateien aus /home/andilar/audio
 async fn play_custom(info: web::Query<PlayRequest>) -> Result<HttpResponse> {
     let filename = match &info.file {
         Some(f) => f,
@@ -137,7 +137,7 @@ async fn play_custom(info: web::Query<PlayRequest>) -> Result<HttpResponse> {
             .body("Bitte Dateinamen angeben")),
     };
     
-    let wav_path = format!("/home/pi/audio/{}", filename);
+    let wav_path = format!("/home/andilar/audio/{}", filename);
     
     if !std::path::Path::new(&wav_path).exists() {
         return Ok(HttpResponse::NotFound()
@@ -158,9 +158,9 @@ async fn play_custom(info: web::Query<PlayRequest>) -> Result<HttpResponse> {
     }
 }
 
-// Endpunkt zum Auflisten verfügbarer Halloween-Sounds aus /home/pi/audio
+// Endpunkt zum Auflisten verfügbarer Halloween-Sounds aus /home/andilar/audio
 async fn list_sounds() -> Result<HttpResponse> {
-    let audio_dir = "/home/pi/audio";
+    let audio_dir = "/home/andilar/audio";
     
     match std::fs::read_dir(audio_dir) {
         Ok(entries) => {
@@ -404,7 +404,7 @@ async fn index() -> Result<HttpResponse> {
                 const list = document.getElementById('soundList');
                 
                 if (sounds.length === 0) {
-                    list.innerHTML = '<div class="info-box">Keine externen WAV-Dateien in /home/pi/audio gefunden</div>';
+                    list.innerHTML = '<div class="info-box">Keine externen WAV-Dateien in /home/andilar/audio gefunden</div>';
                     return;
                 }
                 
