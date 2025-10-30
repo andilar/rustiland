@@ -114,8 +114,10 @@ async fn play_laugh() -> Result<HttpResponse> {
         }
     }
     
-    // WAV-Datei abspielen
+    // WAV-Datei abspielen über Kopfhörer-Ausgang (Card 1)
     match Command::new("aplay")
+        .arg("-D")
+        .arg("plughw:1,0")
         .arg(temp_path)
         .spawn()
     {
@@ -145,6 +147,8 @@ async fn play_custom(info: web::Query<PlayRequest>) -> Result<HttpResponse> {
     }
     
     match Command::new("aplay")
+        .arg("-D")
+        .arg("plughw:1,0")
         .arg(&wav_path)
         .spawn()
     {
