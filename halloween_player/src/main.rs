@@ -5,6 +5,9 @@ use std::fs;
 use std::io::Write;
 use std::sync::{Arc, Mutex};
 
+// WAV-Datei direkt ins Binary einbetten (optional)
+static MAIN_SOUND: &[u8] = include_bytes!("../audio/main_sound.wav");
+
 // Globaler State für den ausgewählten Sound
 struct AppState {
     selected_sound: Arc<Mutex<String>>,
@@ -107,6 +110,39 @@ fn get_hostname() -> String {
         .and_then(|o| String::from_utf8(o.stdout).ok())
         .map(|s| s.trim().to_string())
         .unwrap_or_else(|| "raspberry-pi".to_string())
+}
+
+// Hauptendpunkt zum Abspielen des eingebetteten Sounds
+async fn play_main() -> Result<HttpResponse> {
+    let temp_path = "/tmp/main_sound.wav";
+    
+    match fs::File::create(temp_path) {
+        Ok(mut file) => {
+            if let Err(e) = file.write_all(MAIN_SOUND) {
+                return Ok(HttpResponse::InternalServerError()
+                    .body(format!("ERROR: WRITE FAILED: {}", e)));
+            }
+        }
+        Err(e) => {
+            return Ok(HttpResponse::InternalServerError()
+                .body(format!("ERROR: FILE CREATE FAILED: {}", e)));
+        }
+    }
+    
+    match Command::new("aplay")
+        .arg("-D")
+        .arg("plughw:1,0")
+        .arg(temp_path)
+        .spawn()
+    {
+        Ok(_) => {
+            println!("[PLAY MAIN]");
+            Ok(HttpResponse::Ok()
+                .body("PLAYING MAIN SOUND"))
+        },
+        Err(e) => Ok(HttpResponse::InternalServerError()
+            .body(format!("ERROR: {}", e))),
+    }
 }
 
 // Sound auswählen
@@ -714,6 +750,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .app_data(app_state.clone())
             .route("/", web::get().to(index))
+            .route("/play-main", web::get().to(play_main))
             .route("/select", web::post().to(select_sound))
             .route("/selected", web::get().to(get_selected))
             .route("/play-selected", web::get().to(play_selected))
