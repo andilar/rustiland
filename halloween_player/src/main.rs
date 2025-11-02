@@ -751,6 +751,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(app_state.clone())
             .route("/", web::get().to(index))
             .route("/play-main", web::get().to(play_main))
+            .route("/laugh", web::get().to(play_main))
             .route("/select", web::post().to(select_sound))
             .route("/selected", web::get().to(get_selected))
             .route("/play-selected", web::get().to(play_selected))
@@ -762,3 +763,4 @@ async fn main() -> std::io::Result<()> {
     .run()
     .await
 }
+
