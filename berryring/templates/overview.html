@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OBLVN Light Table UI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0e14;
+            color: #4fc3f7;
+            font-family: 'Rajdhani', 'Share Tech Mono', 'Courier New', monospace;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(79, 195, 247, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255, 107, 53, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(0, 255, 136, 0.03) 0%, transparent 60%);
+            z-index: -2;
+        }
+
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(79, 195, 247, 0.03) 2px, rgba(79, 195, 247, 0.03) 4px),
+                repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(79, 195, 247, 0.03) 2px, rgba(79, 195, 247, 0.03) 4px);
+            z-index: -1;
+            animation: scanlines 10s linear infinite;
+        }
+
+        @keyframes scanlines {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(20px); }
+        }
+
+        /* Stars background */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -3;
+            background: #0a0e14;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: grid;
+            grid-template-rows: 60px 1fr;
+            gap: 10px;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1a3a4a;
+            padding-bottom: 10px;
+        }
+
+        .left-info {
+            display: flex;
+            gap: 30px;
+            font-size: 12px;
+        }
+
+        .info-item {
+            border: 1px solid #1a3a4a;
+            padding: 8px 15px;
+        }
+
+        .info-label {
+            color: #4fc3f7;
+            font-size: 10px;
+            margin-bottom: 2px;
+            font-family: 'Rajdhani', sans-serif;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .info-value {
+            color: #00ff88;
+            font-size: 14px;
+            font-weight: bold;
+            font-family: 'Orbitron', monospace;
+            letter-spacing: 1px;
+        }
+
+        /* Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 20px;
+            height: 100%;
+        }
+
+        /* Left Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+        }
+
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: radial-gradient(circle at 50% 50%, rgba(79, 195, 247, 0.1) 0%, transparent 70%);
+            z-index: -1;
+            border-radius: 10px;
+        }
+
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .matrix-cell {
+            height: 60px;
+            background: linear-gradient(180deg, #1a2633 0%, #0f1821 100%);
+            border: 1px solid #2a4a5a;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        .matrix-bar {
+            width: 3px;
+            height: 8px;
+            background: #4fc3f7;
+            margin: 1px auto;
+            opacity: 0.6;
+        }
+
+        .matrix-bar.active {
+            background: #00ff88;
+            opacity: 1;
+        }
+
+        /* Diamond Display */
+        .diamond-container {
+            position: relative;
+            height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #1a3a4a;
+            padding: 20px;
+        }
+
+        .diamond {
+            width: 200px;
+            height: 200px;
+            position: relative;
+        }
+
+        .diamond-line {
+            position: absolute;
+            background: #4fc3f7;
+            opacity: 0.7;
+        }
+
+        .diamond-point {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #00ff88;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00ff88;
+        }
+
+        /* Resource Panels */
+        .resource-panels {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            height: 100%;
+        }
+
+        .resource-panel {
+            background: linear-gradient(135deg, rgba(15, 24, 33, 0.95) 0%, rgba(10, 14, 20, 0.95) 100%);
+            border: 1px solid #1a3a4a;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 
+                inset 0 0 30px rgba(79, 195, 247, 0.05),
+                0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .resource-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(45deg, transparent 48%, rgba(79, 195, 247, 0.02) 49%, rgba(79, 195, 247, 0.02) 51%, transparent 52%),
+                linear-gradient(-45deg, transparent 48%, rgba(79, 195, 247, 0.02) 49%, rgba(79, 195, 247, 0.02) 51%, transparent 52%);
+            background-size: 20px 20px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .resource-panel > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 11px;
+            color: #4fc3f7;
+        }
+
+        .resource-number {
+            font-size: 24px;
+            color: #fff;
+            font-weight: bold;
+            font-family: 'Orbitron', monospace;
+            letter-spacing: 2px;
+        }
+
+        .multiplier {
+            font-size: 18px;
+            color: #00ff88;
+            font-family: 'Orbitron', monospace;
+            letter-spacing: 1px;
+        }
+
+        .node-count {
+            font-size: 14px;
+            color: #888;
+        }
+
+        /* Top Display */
+        .top-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .hex-shape {
+            width: 300px;
+            height: 120px;
+            background: linear-gradient(135deg, #1a2633 0%, #0f1821 100%);
+            border: 2px solid #4fc3f7;
+            clip-path: polygon(20% 0%, 80% 0%, 100% 50%, 80% 100%, 20% 100%, 0% 50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .diamond-icon {
+            width: 40px;
+            height: 40px;
+            background: #ff6b35;
+            transform: rotate(45deg);
+            box-shadow: 0 0 20px #ff6b35;
+        }
+
+        /* Circular Indicators */
+        .indicators {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+        }
+
+        .indicator {
+            position: relative;
+        }
+
+        .circle-indicator {
+            width: 80px;
+            height: 80px;
+            border: 3px solid #2a4a5a;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .circle-fill {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 50%;
+            height: 50%;
+            background: #4fc3f7;
+            transform-origin: left center;
+            opacity: 0.3;
+        }
+
+        .indicator-label {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 10px;
+        }
+
+        .indicator-value {
+            color: #ff6b35;
+            font-size: 16px;
+            font-weight: bold;
+            font-family: 'Orbitron', monospace;
+        }
+
+        /* Stats Display */
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+        }
+
+        .stat-label {
+            color: #4fc3f7;
+        }
+
+        .stat-value {
+            color: #fff;
+            font-weight: bold;
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .stat-value.orange {
+            color: #ff6b35;
+        }
+
+        .stat-value.cyan {
+            color: #00ffff;
+        }
+
+        /* Bar Visualizer */
+        .bar-visualizer {
+            display: flex;
+            gap: 4px;
+            align-items: flex-end;
+            height: 150px;
+            margin: 20px 0;
+        }
+
+        .bar-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            justify-content: flex-end;
+        }
+
+        .bar-segment {
+            height: 8px;
+            background: #4fc3f7;
+            opacity: 0.5;
+        }
+
+        .bar-segment.active {
+            opacity: 1;
+        }
+
+        .bar-segment.orange {
+            background: #ff6b35;
+        }
+
+        .bar-segment.green {
+            background: #00ff88;
+        }
+
+        .bar-segment.cyan {
+            background: #00ffff;
+        }
+
+        .bar-segment.blue {
+            background: #4fc3f7;
+        }
+
+        /* Bottom Display */
+        .bottom-display {
+            margin-top: auto;
+        }
+
+        .clct-display {
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+
+        .clct-label {
+            color: #4fc3f7;
+        }
+
+        .clct-value {
+            color: #ff6b35;
+            font-weight: bold;
+            font-size: 24px;
+            font-family: 'Orbitron', monospace;
+            letter-spacing: 2px;
+        }
+
+        /* Grid Map */
+        .grid-map {
+            width: 100%;
+            height: 150px;
+            position: relative;
+            border: 1px solid #1a3a4a;
+            background: linear-gradient(to bottom, transparent 0%, transparent 25%, #0a1520 25%, #0a1520 26%, transparent 26%, transparent 50%, #0a1520 50%, #0a1520 51%, transparent 51%, transparent 75%, #0a1520 75%, #0a1520 76%, transparent 76%);
+            background-size: 30px 30px;
+        }
+
+        .grid-map::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to right, transparent 0%, transparent 25%, #0a1520 25%, #0a1520 26%, transparent 26%, transparent 50%, #0a1520 50%, #0a1520 51%, transparent 51%, transparent 75%, #0a1520 75%, #0a1520 76%, transparent 76%);
+            background-size: 30px 30px;
+        }
+
+        .grid-point {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #ff6b35;
+            border-radius: 50%;
+            box-shadow: 0 0 15px #ff6b35;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Mini Bars */
+        .mini-bars {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .mini-bar-group {
+            flex: 1;
+            display: flex;
+            gap: 3px;
+        }
+
+        .mini-bar {
+            flex: 1;
+            height: 40px;
+            background: linear-gradient(to top, #4fc3f7 0%, transparent 100%);
+            opacity: 0.6;
+        }
+
+        .mini-bar.active {
+            opacity: 1;
+        }
+
+        /* Bottom Info */
+        .bottom-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 9px;
+            color: #4fc3f7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="left-info">
+                <div class="info-item">
+                    <div class="info-label">RxSRC : DTH</div>
+                    <div class="info-value">NODE 490</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">RESOURCE GATHERER DETERIUM GAUGE</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">REPORTING TO</div>
+                    <div class="info-value">RSRCH LOG 280 <span style="color: #ff6b35;">DXC 49</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="main-grid">
+            <!-- Left Sidebar -->
+            <div class="sidebar">
+                <!-- Matrix Grid -->
+                <div class="matrix-grid">
+                    <div class="matrix-cell">
+                        <div class="matrix-bar"></div>
+                        <div class="matrix-bar"></div>
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar active"></div>
+                    </div>
+                    <div class="matrix-cell">
+                        <div class="matrix-bar"></div>
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar active"></div>
+                    </div>
+                    <div class="matrix-cell">
+                        <div class="matrix-bar"></div>
+                        <div class="matrix-bar"></div>
+                        <div class="matrix-bar"></div>
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar active"></div>
+                    </div>
+                    <div class="matrix-cell">
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar"></div>
+                    </div>
+                    <div class="matrix-cell">
+                        <div class="matrix-bar"></div>
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar"></div>
+                    </div>
+                    <div class="matrix-cell">
+                        <div class="matrix-bar"></div>
+                        <div class="matrix-bar"></div>
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar active"></div>
+                    </div>
+                    <div class="matrix-cell">
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar"></div>
+                        <div class="matrix-bar"></div>
+                    </div>
+                    <div class="matrix-cell">
+                        <div class="matrix-bar"></div>
+                        <div class="matrix-bar"></div>
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar"></div>
+                    </div>
+                    <div class="matrix-cell">
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar active"></div>
+                    </div>
+                    <div class="matrix-cell">
+                        <div class="matrix-bar"></div>
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar"></div>
+                        <div class="matrix-bar"></div>
+                    </div>
+                    <div class="matrix-cell">
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar"></div>
+                        <div class="matrix-bar"></div>
+                        <div class="matrix-bar active"></div>
+                    </div>
+                    <div class="matrix-cell">
+                        <div class="matrix-bar"></div>
+                        <div class="matrix-bar"></div>
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar active"></div>
+                        <div class="matrix-bar active"></div>
+                    </div>
+                </div>
+
+                <!-- Diamond Display -->
+                <div class="diamond-container">
+                    <svg class="diamond" viewBox="0 0 200 200">
+                        <!-- Diamond shape -->
+                        <line x1="100" y1="20" x2="180" y2="100" stroke="#4fc3f7" stroke-width="2" opacity="0.7"/>
+                        <line x1="180" y1="100" x2="100" y2="180" stroke="#4fc3f7" stroke-width="2" opacity="0.7"/>
+                        <line x1="100" y1="180" x2="20" y2="100" stroke="#4fc3f7" stroke-width="2" opacity="0.7"/>
+                        <line x1="20" y1="100" x2="100" y2="20" stroke="#4fc3f7" stroke-width="2" opacity="0.7"/>
+                        
+                        <!-- Inner lines -->
+                        <line x1="100" y1="100" x2="100" y2="20" stroke="#4fc3f7" stroke-width="1" opacity="0.5"/>
+                        <line x1="100" y1="100" x2="180" y2="100" stroke="#4fc3f7" stroke-width="1" opacity="0.5"/>
+                        <line x1="100" y1="100" x2="100" y2="180" stroke="#00ff88" stroke-width="2" opacity="0.8"/>
+                        <line x1="100" y1="100" x2="20" y2="100" stroke="#4fc3f7" stroke-width="1" opacity="0.5"/>
+                        
+                        <!-- Points -->
+                        <circle cx="100" cy="100" r="4" fill="#00ff88" filter="url(#glow)"/>
+                        <circle cx="100" cy="180" r="3" fill="#00ff88" filter="url(#glow)"/>
+                        <circle cx="65" cy="135" r="2" fill="#4fc3f7" opacity="0.7"/>
+                        <circle cx="135" cy="135" r="2" fill="#4fc3f7" opacity="0.7"/>
+                        
+                        <defs>
+                            <filter id="glow">
+                                <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                                <feMerge>
+                                    <feMergeNode in="coloredBlur"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                        </defs>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Resource Panels -->
+            <div class="resource-panels">
+                <!-- Panel R1 -->
+                <div class="resource-panel">
+                    <div class="panel-header">
+                        <span>SHIP NO.</span>
+                        <span><span class="resource-number">R1</span> <span class="multiplier">X4</span></span>
+                        <span>NODE NO.</span>
+                        <span class="node-count">267</span>
+                    </div>
+
+                    <!-- Hex Shape -->
+                    <div class="top-display">
+                        <div class="hex-shape">
+                            <div class="diamond-icon"></div>
+                        </div>
+                    </div>
+
+                    <!-- Indicators -->
+                    <div class="indicators">
+                        <div class="indicator">
+                            <div class="circle-indicator">
+                                <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 2px dashed #4fc3f7; opacity: 0.3; animation: rotate 10s linear infinite;"></div>
+                            </div>
+                            <div class="indicator-label">
+                                <div style="color: #4fc3f7; font-size: 9px;">PARTICULATE</div>
+                                <div class="indicator-value">2048</div>
+                            </div>
+                        </div>
+                        <div class="indicator">
+                            <div class="circle-indicator">
+                                <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 2px dashed #4fc3f7; opacity: 0.3; animation: rotate 8s linear infinite;"></div>
+                            </div>
+                            <div class="indicator-label">
+                                <div style="color: #4fc3f7; font-size: 9px;">ALTITUDE</div>
+                                <div class="indicator-value">3242</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span class="stat-label">ABDUCTION</span>
+                            <span class="stat-value orange">44.2</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">SPEED</span>
+                            <span class="stat-value cyan">28.2</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">FLOW RATE</span>
+                            <span class="stat-value">226</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">ORIENTATION</span>
+                            <span class="stat-value orange">0.0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">FILTRATION</span>
+                            <span class="stat-value cyan">18.2</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">ROTATION</span>
+                            <span class="stat-value cyan">10.4</span>
+                        </div>
+                        <div class="stat-item" style="grid-column: span 2;">
+                            <span class="stat-label">HDR H 006</span>
+                            <span class="stat-value">H6z</span>
+                            <span class="stat-value cyan">D9.4</span>
+                            <span class="stat-label">MPM H 404</span>
+                        </div>
+                    </div>
+
+                    <!-- Bar Visualizer -->
+                    <div class="bar-visualizer">
+                        <div class="bar-column">
+                            <div class="bar-segment orange active"></div>
+                            <div class="bar-segment orange active"></div>
+                            <div class="bar-segment orange active"></div>
+                        </div>
+                        <div class="bar-column">
+                            <div class="bar-segment orange active"></div>
+                            <div class="bar-segment orange active"></div>
+                        </div>
+                        <div class="bar-column">
+                            <div class="bar-segment green active"></div>
+                            <div class="bar-segment green active"></div>
+                            <div class="bar-segment green active"></div>
+                            <div class="bar-segment green active"></div>
+                        </div>
+                        <div class="bar-column">
+                            <div class="bar-segment green active"></div>
+                            <div class="bar-segment green active"></div>
+                            <div class="bar-segment green active"></div>
+                        </div>
+                        <div class="bar-column">
+                            <div class="bar-segment cyan active"></div>
+                            <div class="bar-segment cyan active"></div>
+                            <div class="bar-segment cyan active"></div>
+                            <div class="bar-segment cyan active"></div>
+                            <div class="bar-segment cyan active"></div>
+                        </div>
+                        <div class="bar-column">
+                            <div class="bar-segment cyan active"></div>
+                            <div class="bar-segment cyan active"></div>
+                            <div class="bar-segment cyan active"></div>
+                            <div class="bar-segment cyan active"></div>
+                        </div>
+                        <div class="bar-column">
+                            <div class="bar-segment blue active"></div>
+                            <div class="bar-segment blue active"></div>
+                            <div class="bar-segment blue active"></div>
+                            <div class="bar-segment blue active"></div>
+                            <div class="bar-segment blue active"></div>
+                            <div class="bar-segment blue active"></div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Display -->
+                    <div class="bottom-display">
+                        <div class="clct-display">
+                            <span class="clct-label">CLCT :</span> <span class="clct-value">91%</span>
+                        </div>
+                        <div class="grid-map">
+                            <div class="grid-point" style="left: 52%; top: 48%;"></div>
+                        </div>
+                        <div class="mini-bars">
+                            <div class="mini-bar-group">
+                                <div class="mini-bar active"></div>
+                                <div class="mini-bar active"></div>
+                                <div class="mini-bar"></div>
+                            </div>
+                            <div class="mini-bar-group">
+                                <div class="mini-bar active"></div>
+                                <div class="mini-bar"></div>
+                            </div>
+                            <div class="mini-bar-group">
+                                <div class="mini-bar active"></div>
+                                <div class="mini-bar active"></div>
+                                <div class="mini-bar active"></div>
+                            </div>
+                            <div class="mini-bar-group">
+                                <div class="mini-bar active"></div>
+                                <div class="mini-bar active"></div>
+                            </div>
+                            <div class="mini-bar-group">
+                                <div class="mini-bar"></div>
+                                <div class="mini-bar active"></div>
+                            </div>
+                            <div class="mini-bar-group">
+                                <div class="mini-bar active"></div>
+                                <div class="mini-bar active"></div>
+                                <div class="mini-bar active"></div>
+                            </div>
+                        </div>
+                        <div class="bottom-info">
+                            <span>S76</span>
+                            <span>CRC 442-OBV-01</span>
+                            <span>S76</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel R2 -->
+                <div class="resource-panel">
+                    <div class="panel-header">
+                        <span>SHIP NO.</span>
+                        <span><span class="resource-number">R2</span> <span class="multiplier">X7</span></span>
+                        <span>NODE NO.</span>
+                        <span class="node-count">492</span>
+                    </div>
+
+                    <div class="top-display">
+                        <div class="hex-shape">
+                            <div class="diamond-icon"></div>
+                        </div>
+                    </div>
+
+                    <div class="indicators">
+                        <div class="indicator">
+                            <div class="circle-indicator">
+                                <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 2px dashed #4fc3f7; opacity: 0.3; animation: rotate 10s linear infinite;"></div>
+                            </div>
+                            <div class="indicator-label">
+                                <div style="color: #4fc3f7; font-size: 9px;">PARTICULATE</div>
+                                <div class="indicator-value">2048</div>
+                            </div>
+                        </div>
+                        <div class="indicator">
+                            <div class="circle-indicator">
+                                <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 2px dashed #4fc3f7; opacity: 0.3; animation: rotate 8s linear infinite;"></div>
+                            </div>
+                            <div class="indicator-label">
+                                <div style="color: #4fc3f7; font-size: 9px;">ALTITUDE</div>
+                                <div class="indicator-value">4098</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span class="stat-label">ABDUCTION</span>
+                            <span class="stat-value orange">44.2</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">SPEED</span>
+                            <span class="stat-value cyan">28.2</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">FLOW RATE</span>
+                            <span class="stat-value">226</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">ORIENTATION</span>
+                            <span class="stat-value orange">0.0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">FILTRATION</span>
+                            <span class="stat-value cyan">18.2</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">ROTATION</span>
+                            <span class="stat-value cyan">10.4</span>
+                        </div>
+                        <div class="stat-item" style="grid-column: span 2;">
+                            <span class="stat-label">HDR H 006</span>
+                            <span class="stat-value">H6z</span>
+                            <span class="stat-value cyan">D9.4</span>
+                            <span class="stat-label">MPM H 404</span>
+                        </div>
+                    </div>
+
+                    <div class="bar-visualizer">
+                        <div class="bar-column">
+                            <div class="bar-segment orange active"></div>
+                            <div class="bar-segment orange active"></div>
+                            <div class="bar-segment orange active"></div>
+                        </div>
+                        <div class="bar-column">
+                            <div class="bar-segment orange active"></div>
+                            <div class="bar-segment orange active"></div>
+                        </div>
+                        <div class="bar-column">
+                            <div class="bar-segment green active"></div>
+                            <div class="bar-segment green active"></div>
+                            <div class="bar-segment green active"></div>
+                            <div class="bar-segment green active"></div>
+                        </div>
+                        <div class="bar-column">
+                            <div class="bar-segment green active"></div>
+                            <div class="bar-segment green active"></div>
+                            <div class="bar-segment green active"></div>
+                        </div>
+                        <div class="bar-column">
+                            <div class="bar-segment cyan active"></div>
+                            <div class="bar-segment cyan active"></div>
+                            <div class="bar-segment cyan active"></div>
+                            <div class="bar-segment cyan active"></div>
+                            <div class="bar-segment cyan active"></div>
+                        </div>
+                        <div class="bar-column">
+                            <div class="bar-segment cyan active"></div>
+                            <div class="bar-segment cyan active"></div>
+                            <div class="bar-segment cyan active"></div>
+                            <div class="bar-segment cyan active"></div>
+                        </div>
+                        <div class="bar-column">
+                            <div class="bar-segment blue active"></div>
+                            <div class="bar-segment blue active"></div>
+                            <div class="bar-segment blue active"></div>
+                            <div class="bar-segment blue active"></div>
+                            <div class="bar-segment blue active"></div>
+                            <div class="bar-segment blue active"></div>
+                        </div>
+                    </div>
+
+                    <div class="bottom-display">
+                        <div class="clct-display">
+                            <span class="clct-label">CLCT :</span> <span class="clct-value">94%</span>
+                        </div>
+                        <div class="grid-map">
+                            <div class="grid-point" style="left: 50%; top: 50%;"></div>
+                            <div style="position: absolute; left: 20%; top: 70%; width: 50%; height: 1px; background: #ff6b35; opacity: 0.3;"></div>
+                            <div style="position: absolute; left: 30%; top: 55%; width: 1px; height: 30%; background: #ff6b35; opacity: 0.3;"></div>
+                            <div class="grid-point" style="left: 35%; top: 73%; width: 12px; height: 12px;"></div>
+                            <div class="grid-point" style="left: 62%; top: 73%; width: 12px; height: 12px;"></div>
+                        </div>
+                        <div class="mini-bars">
+                            <div class="mini-bar-group">
+                                <div class="mini-bar active"></div>
+                                <div class="mini-bar active"></div>
+                                <div class="mini-bar"></div>
+                            </div>
+                            <div class="mini-bar-group">
+                                <div class="mini-bar active"></div>
+                                <div class="mini-bar"></div>
+                            </div>
+                            <div class="mini-bar-group">
+                                <div class="mini-bar active"></div>
+                                <div class="mini-bar active"></div>
+                                <div class="mini-bar active"></div>
+                            </div>
+                            <div class="mini-bar-group">
+                                <div class="mini-bar active"></div>
+                                <div class="mini-bar active"></div>
+                            </div>
+                            <div class="mini-bar-group">
+                                <div class="mini-bar"></div>
+                                <div class="mini-bar active"></div>
+                            </div>
+                            <div class="mini-bar-group">
+                                <div class="mini-bar active"></div>
+                                <div class="mini-bar active"></div>
+                                <div class="mini-bar active"></div>
+                            </div>
+                        </div>
+                        <div class="bottom-info">
+                            <span>S76</span>
+                            <span>CRC 442-OBV-01</span>
+                            <span>S76</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel R4 -->
+                <div class="resource-panel">
+                    <div class="panel-header">
+                        <span>SHIP NO.</span>
+                        <span><span class="resource-number">R4</span> <span class="multiplier">X5</span></span>
+                        <span>NODE NO.</span>
+                        <span class="node-count">542</span>
+                    </div>
+
+                    <div class="top-display">
+                        <div class="hex-shape">
+                            <div class="diamond-icon"></div>
+                        </div>
+                    </div>
+
+                    <div class="indicators">
+                        <div class="indicator">
+                            <div class="circle-indicator">
+                                <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 2px dashed #4fc3f7; opacity: 0.3; animation: rotate 10s linear infinite;"></div>
+                            </div>
+                            <div class="indicator-label">
+                                <div style="color: #4fc3f7; font-size: 9px;">PARTICULATE</div>
+                                <div class="indicator-value">2048</div>
+                            </div>
+                        </div>
+                        <div class="indicator">
+                            <div class="circle-indicator">
+                                <div style="position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 2px dashed #4fc3f7; opacity: 0.3; animation: rotate 8s linear infinite;"></div>
+                            </div>
+                            <div class="indicator-label">
+                                <div style="color: #4fc3f7; font-size: 9px;">ALTITUDE</div>
+                                <div class="indicator-value">2449</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats">
+                        <div class="stat-item">
+                            <span class="stat-label">ABDUCTION</span>
+                            <span class="stat-value orange">44.2</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">SPEED</span>
+                            <span class="stat-value cyan">28.2</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">FLOW RATE</span>
+                            <span class="stat-value">226</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">ORIENTATION</span>
+                            <span class="stat-value orange">0.0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">FILTRATION</span>
+                            <span class="stat-value cyan">18.2</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">ROTATION</span>
+                            <span class="stat-value cyan">10.4</span>
+                        </div>
+                        <div class="stat-item" style="grid-column: span 2;">
+                            <span class="stat-label">HDR H 006</span>
+                            <span class="stat-value">H6z</span>
+                            <span class="stat-value cyan">D9.4</span>
+                            <span class="stat-label">MPM H 404</span>
+                        </div>
+                    </div>
+
+                    <div class="bar-visualizer">
+                        <div class="bar-column">
+                            <div class="bar-segment orange active"></div>
+                            <div class="bar-segment orange active"></div>
+                            <div class="bar-segment orange active"></div>
+                        </div>
+                        <div class="bar-column">
+                            <div class="bar-segment orange active"></div>
+                            <div class="bar-segment orange active"></div>
+                        </div>
+                        <div class="bar-column">
+                            <div class="bar-segment green active"></div>
+                            <div class="bar-segment green active"></div>
+                            <div class="bar-segment green active"></div>
+                            <div class="bar-segment green active"></div>
+                        </div>
+                        <div class="bar-column">
+                            <div class="bar-segment green active"></div>
+                            <div class="bar-segment green active"></div>
+                            <div class="bar-segment green active"></div>
+                        </div>
+                        <div class="bar-column">
+                            <div class="bar-segment cyan active"></div>
+                            <div class="bar-segment cyan active"></div>
+                            <div class="bar-segment cyan active"></div>
+                            <div class="bar-segment cyan active"></div>
+                            <div class="bar-segment cyan active"></div>
+                        </div>
+                        <div class="bar-column">
+                            <div class="bar-segment cyan active"></div>
+                            <div class="bar-segment cyan active"></div>
+                            <div class="bar-segment cyan active"></div>
+                            <div class="bar-segment cyan active"></div>
+                        </div>
+                        <div class="bar-column">
+                            <div class="bar-segment blue active"></div>
+                            <div class="bar-segment blue active"></div>
+                            <div class="bar-segment blue active"></div>
+                            <div class="bar-segment blue active"></div>
+                            <div class="bar-segment blue active"></div>
+                            <div class="bar-segment blue active"></div>
+                        </div>
+                    </div>
+
+                    <div class="bottom-display">
+                        <div class="clct-display">
+                            <span class="clct-label">CLCT :</span> <span class="clct-value">92%</span>
+                        </div>
+                        <div class="grid-map">
+                            <div class="grid-point" style="left: 70%; top: 60%;"></div>
+                        </div>
+                        <div class="mini-bars">
+                            <div class="mini-bar-group">
+                                <div class="mini-bar active"></div>
+                                <div class="mini-bar active"></div>
+                            </div>
+                            <div class="mini-bar-group">
+                                <div class="mini-bar active"></div>
+                                <div class="mini-bar"></div>
+                            </div>
+                            <div class="mini-bar-group">
+                                <div class="mini-bar active"></div>
+                                <div class="mini-bar active"></div>
+                                <div class="mini-bar active"></div>
+                            </div>
+                            <div class="mini-bar-group">
+                                <div class="mini-bar active"></div>
+                                <div class="mini-bar active"></div>
+                            </div>
+                            <div class="mini-bar-group">
+                                <div class="mini-bar"></div>
+                                <div class="mini-bar active"></div>
+                                <div class="mini-bar active"></div>
+                            </div>
+                            <div class="mini-bar-group">
+                                <div class="mini-bar active"></div>
+                                <div class="mini-bar active"></div>
+                                <div class="mini-bar active"></div>
+                            </div>
+                        </div>
+                        <div class="bottom-info">
+                            <span>S76</span>
+                            <span>CRC 442-OBV-01</span>
+                            <span>S76</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="stars" id="stars"></div>
+
+    <style>
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+
+    <script>
+        // Generate stars
+        const starsContainer = document.getElementById('stars');
+        for (let i = 0; i < 100; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            const size = Math.random() * 2 + 0.5;
+            star.style.width = size + 'px';
+            star.style.height = size + 'px';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 3 + 's';
+            star.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            starsContainer.appendChild(star);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oblivion HUD Interface</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            color: #4fc3f7;
+            font-family: 'Rajdhani', 'Share Tech Mono', monospace;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Stars background */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: #000;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .container {
+            display: flex;
+            gap: 100px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Circular Display */
+        .circular-display {
+            position: relative;
+            width: 350px;
+            height: 350px;
+        }
+
+        .outer-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px solid rgba(79, 195, 247, 0.3);
+            border-radius: 50%;
+            box-shadow: 
+                inset 0 0 20px rgba(79, 195, 247, 0.1),
+                0 0 20px rgba(79, 195, 247, 0.2);
+        }
+
+        .outer-ring::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 50%;
+            border: 1px solid rgba(79, 195, 247, 0.1);
+            animation: rotate-ring 20s linear infinite;
+        }
+
+        @keyframes rotate-ring {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Scale markers */
+        .scale-markers {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .marker {
+            position: absolute;
+            width: 2px;
+            height: 10px;
+            background: rgba(79, 195, 247, 0.5);
+            left: 50%;
+            top: 0;
+            transform-origin: 50% 175px;
+        }
+
+        .marker.major {
+            height: 15px;
+            background: rgba(79, 195, 247, 0.8);
+            width: 3px;
+        }
+
+        .marker-label {
+            position: absolute;
+            font-size: 10px;
+            color: rgba(79, 195, 247, 0.6);
+            font-family: 'Share Tech Mono', monospace;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Inner circle */
+        .inner-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 280px;
+            height: 280px;
+            border: 2px solid rgba(79, 195, 247, 0.4);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle, rgba(10, 20, 30, 0.8) 0%, rgba(0, 0, 0, 0.9) 100%);
+            box-shadow: inset 0 0 30px rgba(79, 195, 247, 0.1);
+        }
+
+        /* Number Display */
+        .number-display {
+            text-align: center;
+        }
+
+        .main-number {
+            font-size: 72px;
+            font-weight: 900;
+            color: #fff;
+            font-family: 'Orbitron', monospace;
+            letter-spacing: 3px;
+            text-shadow: 0 0 20px rgba(79, 195, 247, 0.5);
+            line-height: 1;
+        }
+
+        .divider {
+            width: 120px;
+            height: 2px;
+            background: linear-gradient(to right, transparent, #4fc3f7, transparent);
+            margin: 15px auto;
+            box-shadow: 0 0 10px rgba(79, 195, 247, 0.5);
+        }
+
+        .sub-number {
+            font-size: 48px;
+            font-weight: 700;
+            color: #fff;
+            font-family: 'Orbitron', monospace;
+            letter-spacing: 2px;
+            text-shadow: 0 0 15px rgba(79, 195, 247, 0.4);
+        }
+
+        /* Indicator dots */
+        .indicators {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .indicator-dot {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #4fc3f7;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #4fc3f7;
+        }
+
+        /* Orange accent arc */
+        .arc-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        /* Radar Display */
+        .radar-display {
+            position: relative;
+            width: 350px;
+            height: 350px;
+        }
+
+        .radar-outer-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px solid rgba(79, 195, 247, 0.3);
+            border-radius: 50%;
+            box-shadow: 
+                inset 0 0 20px rgba(79, 195, 247, 0.1),
+                0 0 20px rgba(79, 195, 247, 0.2);
+        }
+
+        .radar-inner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 280px;
+            height: 280px;
+            border: 2px solid rgba(79, 195, 247, 0.4);
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(10, 20, 30, 0.8) 0%, rgba(0, 0, 0, 0.9) 100%);
+            box-shadow: inset 0 0 30px rgba(79, 195, 247, 0.1);
+            overflow: hidden;
+        }
+
+        /* Radar grid */
+        .radar-grid {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+
+        .radar-line-h {
+            position: absolute;
+            width: 100%;
+            height: 1px;
+            background: rgba(79, 195, 247, 0.15);
+            top: 50%;
+            left: 0;
+        }
+
+        .radar-line-v {
+            position: absolute;
+            width: 1px;
+            height: 100%;
+            background: rgba(79, 195, 247, 0.15);
+            left: 50%;
+            top: 0;
+        }
+
+        .radar-circle {
+            position: absolute;
+            border: 1px solid rgba(79, 195, 247, 0.1);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .radar-circle.c1 { width: 70px; height: 70px; }
+        .radar-circle.c2 { width: 140px; height: 140px; }
+        .radar-circle.c3 { width: 210px; height: 210px; }
+
+        /* Radar sweep */
+        .radar-sweep {
+            position: absolute;
+            width: 50%;
+            height: 2px;
+            background: linear-gradient(to right, rgba(79, 195, 247, 0.8), transparent);
+            top: 50%;
+            left: 50%;
+            transform-origin: left center;
+            animation: radar-rotate 4s linear infinite;
+            box-shadow: 0 0 10px rgba(79, 195, 247, 0.5);
+        }
+
+        @keyframes radar-rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Radar sector highlight */
+        .radar-sector {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            clip-path: polygon(50% 50%, 100% 0%, 100% 30%);
+            background: radial-gradient(circle at 50% 50%, rgba(79, 195, 247, 0.3) 0%, transparent 70%);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Target blips */
+        .target-blip {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #ff6b35;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #ff6b35;
+            animation: blip-pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes blip-pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.7; }
+        }
+
+        /* Orange accent elements */
+        .orange-accent {
+            position: absolute;
+        }
+
+        .orange-bar {
+            position: absolute;
+            height: 3px;
+            background: #ff6b35;
+            box-shadow: 0 0 8px #ff6b35;
+        }
+
+        /* Corner decorations */
+        .corner-decoration {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgba(79, 195, 247, 0.3);
+        }
+
+        .corner-decoration.tl {
+            top: 20px;
+            left: 20px;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .corner-decoration.tr {
+            top: 20px;
+            right: 20px;
+            border-left: none;
+            border-bottom: none;
+        }
+
+        .corner-decoration.bl {
+            bottom: 20px;
+            left: 20px;
+            border-right: none;
+            border-top: none;
+        }
+
+        .corner-decoration.br {
+            bottom: 20px;
+            right: 20px;
+            border-left: none;
+            border-top: none;
+        }
+
+        /* Triangular pointer */
+        .triangle-pointer {
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 12px solid #ff6b35;
+            filter: drop-shadow(0 0 5px #ff6b35);
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+
+    <!-- Corner Decorations -->
+    <div class="corner-decoration tl"></div>
+    <div class="corner-decoration tr"></div>
+    <div class="corner-decoration bl"></div>
+    <div class="corner-decoration br"></div>
+
+    <div class="container">
+        <!-- Left Circular Display -->
+        <div class="circular-display">
+            <div class="outer-ring"></div>
+            
+            <!-- Scale Markers -->
+            <div class="scale-markers" id="leftMarkers"></div>
+            
+            <!-- Arc overlay -->
+            <svg class="arc-overlay" viewBox="0 0 350 350">
+                <defs>
+                    <linearGradient id="orangeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#ff6b35;stop-opacity:0" />
+                        <stop offset="50%" style="stop-color:#ff6b35;stop-opacity:0.8" />
+                        <stop offset="100%" style="stop-color:#ff6b35;stop-opacity:0" />
+                    </linearGradient>
+                </defs>
+                <path d="M 175 20 A 155 155 0 0 1 310 100" 
+                      stroke="url(#orangeGrad)" 
+                      stroke-width="4" 
+                      fill="none"
+                      filter="drop-shadow(0 0 8px #ff6b35)"/>
+            </svg>
+
+            <!-- Indicators -->
+            <div class="indicators">
+                <div class="indicator-dot" style="top: 15%; left: 20%;"></div>
+                <div class="indicator-dot" style="top: 25%; right: 15%;"></div>
+                <div class="indicator-dot" style="bottom: 30%; left: 10%;"></div>
+                <div class="indicator-dot" style="bottom: 15%; right: 25%;"></div>
+            </div>
+
+            <!-- Triangle pointer -->
+            <div class="triangle-pointer"></div>
+
+            <!-- Inner Display -->
+            <div class="inner-circle">
+                <div class="number-display">
+                    <div class="main-number">64</div>
+                    <div class="divider"></div>
+                    <div class="sub-number">3</div>
+                </div>
+            </div>
+
+            <!-- Orange accent bars -->
+            <div class="orange-bar" style="bottom: 35%; left: -30px; width: 25px; transform: rotate(-25deg);"></div>
+            <div class="orange-bar" style="bottom: 25%; right: -30px; width: 20px; transform: rotate(25deg);"></div>
+        </div>
+
+        <!-- Right Radar Display -->
+        <div class="radar-display">
+            <div class="radar-outer-ring"></div>
+            
+            <!-- Scale Markers -->
+            <div class="scale-markers" id="radarMarkers"></div>
+
+            <!-- Radar Inner -->
+            <div class="radar-inner">
+                <!-- Grid -->
+                <div class="radar-grid">
+                    <div class="radar-line-h"></div>
+                    <div class="radar-line-v"></div>
+                    <div class="radar-circle c1"></div>
+                    <div class="radar-circle c2"></div>
+                    <div class="radar-circle c3"></div>
+                </div>
+
+                <!-- Sector highlight -->
+                <div class="radar-sector"></div>
+
+                <!-- Sweep line -->
+                <div class="radar-sweep"></div>
+
+                <!-- Target blips -->
+                <div class="target-blip" style="top: 30%; right: 35%;"></div>
+                <div class="target-blip" style="bottom: 40%; left: 40%;"></div>
+                <div class="target-blip" style="top: 55%; right: 25%;"></div>
+            </div>
+
+            <!-- Indicators -->
+            <div class="indicators">
+                <div class="indicator-dot" style="top: 15%; left: 20%;"></div>
+                <div class="indicator-dot" style="top: 25%; right: 15%;"></div>
+                <div class="indicator-dot" style="bottom: 30%; left: 10%;"></div>
+                <div class="indicator-dot" style="bottom: 15%; right: 25%;"></div>
+            </div>
+
+            <!-- Triangle pointer -->
+            <div class="triangle-pointer"></div>
+
+            <!-- Orange accent bars -->
+            <div class="orange-bar" style="top: 30%; left: -25px; width: 20px; transform: rotate(-30deg);"></div>
+        </div>
+    </div>
+
+    <script>
+        // Generate stars
+        const starsContainer = document.getElementById('stars');
+        for (let i = 0; i < 150; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            const size = Math.random() * 2 + 0.5;
+            star.style.width = size + 'px';
+            star.style.height = size + 'px';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 3 + 's';
+            star.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            starsContainer.appendChild(star);
+        }
+
+        // Generate scale markers for left display
+        const leftMarkers = document.getElementById('leftMarkers');
+        for (let i = 0; i < 72; i++) {
+            const marker = document.createElement('div');
+            marker.className = i % 6 === 0 ? 'marker major' : 'marker';
+            marker.style.transform = `rotate(${i * 5}deg)`;
+            leftMarkers.appendChild(marker);
+            
+            // Add labels for major markers
+            if (i % 6 === 0 && i > 0 && i < 72) {
+                const label = document.createElement('div');
+                label.className = 'marker-label';
+                const angle = (i * 5) * Math.PI / 180;
+                const radius = 160;
+                const x = 175 + radius * Math.sin(angle);
+                const y = 175 - radius * Math.cos(angle);
+                label.style.left = x + 'px';
+                label.style.top = y + 'px';
+                label.textContent = i === 18 ? '90' : i === 36 ? '180' : i === 54 ? '270' : '0';
+                leftMarkers.appendChild(label);
+            }
+        }
+
+        // Generate scale markers for radar display
+        const radarMarkers = document.getElementById('radarMarkers');
+        for (let i = 0; i < 72; i++) {
+            const marker = document.createElement('div');
+            marker.className = i % 6 === 0 ? 'marker major' : 'marker';
+            marker.style.transform = `rotate(${i * 5}deg)`;
+            radarMarkers.appendChild(marker);
+        }
+    </script>
+</body>
+</html>
