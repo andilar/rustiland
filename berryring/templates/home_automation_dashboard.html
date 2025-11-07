@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Automation - Room Monitor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0e14;
+            color: #4fc3f7;
+            font-family: Rajdhani, sans-serif;
+            overflow-x: hidden;
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        .page-container {
+            display: grid;
+            grid-template-columns: 380px 380px 1fr;
+            grid-template-rows: auto 1fr auto;
+            gap: 12px;
+            min-height: 100vh;
+            padding: 12px;
+            font-size: 11px;
+        }
+
+        /* Header */
+        .page-header {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1a3a4a;
+            padding-bottom: 8px;
+        }
+
+        .header-left {
+            display: flex;
+            gap: 20px;
+        }
+
+        .header-section {
+            border: 1px solid #1a3a4a;
+            padding: 4px 10px;
+        }
+
+        .header-label {
+            font-size: 7px;
+            color: #4fc3f7;
+            margin-bottom: 2px;
+        }
+
+        .header-value {
+            font-size: 11px;
+            color: #00ff88;
+            font-family: Orbitron, monospace;
+            letter-spacing: 1px;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            font-size: 9px;
+        }
+
+        .node-indicator {
+            color: #4fc3f7;
+        }
+
+        .node-value {
+            font-family: Orbitron, monospace;
+            color: #fff;
+            margin-left: 3px;
+        }
+
+        /* Panels */
+        .left-panel, .middle-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .panel {
+            background: rgba(15, 24, 33, 0.6);
+            border: 1px solid #1a3a4a;
+            padding: 10px;
+        }
+
+        .panel-title {
+            font-size: 7px;
+            color: #4fc3f7;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Status Display */
+        .status-codes {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .status-code {
+            text-align: center;
+        }
+
+        .code-value {
+            font-size: 42px;
+            font-family: Orbitron, monospace;
+            color: #fff;
+            font-weight: 900;
+            text-shadow: 0 0 15px rgba(79, 195, 247, 0.5);
+        }
+
+        /* Floor Plan */
+        .floor-plan {
+            position: relative;
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(10, 20, 30, 0.5);
+        }
+
+        .floor-plan svg {
+            width: 90%;
+            height: auto;
+            filter: drop-shadow(0 0 8px rgba(0, 255, 255, 0.4));
+        }
+
+        .floor-label {
+            position: absolute;
+            font-size: 6px;
+            color: #4fc3f7;
+        }
+
+        /* Buttons */
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 10px;
+            border: 2px solid #1a3a4a;
+            background: rgba(15, 24, 33, 0.7);
+            text-align: center;
+            font-size: 8px;
+            color: #4fc3f7;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn.active {
+            border-color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        /* Bar Graph - Energy */
+        .bar-graph {
+            display: flex;
+            gap: 2px;
+            height: 70px;
+            align-items: flex-end;
+        }
+
+        .bar {
+            flex: 1;
+            background: linear-gradient(to top, #4fc3f7, #00ff88);
+            opacity: 0.6;
+        }
+
+        .bar.active {
+            opacity: 1;
+        }
+
+        .bar.orange {
+            background: linear-gradient(to top, #ff6b35, #ffaa00);
+        }
+
+        .graph-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 6px;
+            font-size: 6px;
+            color: #4fc3f7;
+        }
+
+        /* Sensor Matrix */
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 3px;
+        }
+
+        .matrix-dot {
+            aspect-ratio: 1;
+            border-radius: 50%;
+            background: #1a3a4a;
+        }
+
+        .matrix-dot.active {
+            background: #ff6b35;
+            box-shadow: 0 0 5px #ff6b35;
+        }
+
+        .matrix-dot.cyan {
+            background: #4fc3f7;
+            box-shadow: 0 0 5px #4fc3f7;
+        }
+
+        .matrix-dot.green {
+            background: #00ff88;
+            box-shadow: 0 0 5px #00ff88;
+        }
+
+        /* Temperature Bars */
+        .temp-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .temp-bar {
+            height: 12px;
+            background: rgba(26, 58, 74, 0.3);
+            border: 1px solid #1a3a4a;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 0 4px;
+        }
+
+        .temp-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: linear-gradient(to right, #4fc3f7, #00ff88);
+            box-shadow: 0 0 6px rgba(79, 195, 247, 0.5);
+        }
+
+        .temp-label {
+            position: relative;
+            z-index: 1;
+            font-size: 7px;
+            color: #fff;
+        }
+
+        /* Climate Control */
+        .climate-display {
+            width: 100%;
+            aspect-ratio: 1;
+            border: 2px solid rgba(79, 195, 247, 0.3);
+            border-radius: 50%;
+            position: relative;
+            background: radial-gradient(circle, rgba(10, 20, 30, 0.8), rgba(0, 0, 0, 0.9));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .climate-ring {
+            position: absolute;
+            border: 1px solid rgba(79, 195, 247, 0.12);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .climate-value {
+            font-size: 36px;
+            font-family: Orbitron, monospace;
+            color: #00ff88;
+            font-weight: 900;
+        }
+
+        .climate-unit {
+            font-size: 12px;
+            color: #4fc3f7;
+        }
+
+        .climate-sweep {
+            position: absolute;
+            width: 50%;
+            height: 2px;
+            background: linear-gradient(to right, rgba(0, 255, 136, 0.8), transparent);
+            top: 50%;
+            left: 50%;
+            transform-origin: left;
+            animation: sweep-rotate 6s linear infinite;
+        }
+
+        @keyframes sweep-rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Security Grid */
+        .security-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 3px;
+        }
+
+        .security-cell {
+            aspect-ratio: 2/1;
+            border: 1px solid #1a3a4a;
+            background: rgba(26, 58, 74, 0.2);
+        }
+
+        .security-cell.active {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: #00ff88;
+        }
+
+        .security-cell.alert {
+            background: rgba(255, 107, 53, 0.2);
+            border-color: #ff6b35;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Room Cards */
+        .right-panel {
+            grid-column: 3;
+            grid-row: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+        }
+
+        .fleet-title {
+            font-size: 8px;
+            color: #4fc3f7;
+            padding: 6px 0;
+            border-bottom: 1px solid #1a3a4a;
+            letter-spacing: 1px;
+        }
+
+        .room-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+        }
+
+        .room-card {
+            border: 1px solid #1a3a4a;
+            background: rgba(15, 24, 33, 0.6);
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .room-card:hover {
+            border-color: #4fc3f7;
+            background: rgba(15, 24, 33, 0.8);
+        }
+
+        .room-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .room-name {
+            font-size: 16px;
+            font-family: Orbitron, monospace;
+            color: #00ff88;
+            font-weight: 700;
+        }
+
+        .room-indicators {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: flex-end;
+        }
+
+        .indicator-ring {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(79, 195, 247, 0.3);
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .indicator-ring.active {
+            border-color: #00ff88;
+            box-shadow: 0 0 8px #00ff88;
+        }
+
+        .indicator-ring.alert {
+            border-color: #ff6b35;
+            box-shadow: 0 0 8px #ff6b35;
+            animation: pulse 1s infinite;
+        }
+
+        .indicator-ring::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 2px dashed rgba(79, 195, 247, 0.4);
+            border-radius: 50%;
+            animation: rotate-ring 10s linear infinite;
+        }
+
+        @keyframes rotate-ring {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .room-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 8px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .info-label {
+            color: #4fc3f7;
+            font-size: 6px;
+        }
+
+        .info-value {
+            color: #fff;
+            font-family: Orbitron, monospace;
+            font-size: 10px;
+        }
+
+        .room-status {
+            display: flex;
+            gap: 2px;
+            margin-top: 4px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #1a3a4a;
+        }
+
+        .status-dot.on {
+            background: #00ff88;
+            box-shadow: 0 0 4px #00ff88;
+        }
+
+        .status-dot.warn {
+            background: #ffaa00;
+            box-shadow: 0 0 4px #ffaa00;
+        }
+
+        /* Bottom IDs */
+        .bottom-ids {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(65px, 1fr));
+            gap: 6px;
+        }
+
+        .id-box {
+            border: 2px solid #1a3a4a;
+            background: rgba(15, 24, 33, 0.7);
+            padding: 8px 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .id-box:hover {
+            border-color: #4fc3f7;
+        }
+
+        .id-label {
+            font-size: 6px;
+            color: #4fc3f7;
+            margin-bottom: 4px;
+        }
+
+        .id-value {
+            font-size: 20px;
+            font-family: Orbitron, monospace;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .id-code {
+            font-size: 6px;
+            color: #888;
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+
+    <div class="page-container">
+        <!-- Header -->
+        <div class="page-header">
+            <div class="header-left">
+                <div class="header-section">
+                    <div class="header-label">LOCATION</div>
+                    <div class="header-value">HOME BASE</div>
+                </div>
+                <div class="header-section">
+                    <div class="header-label">SYSTEM STATUS</div>
+                    <div class="header-value">ALL SYSTEMS ONLINE</div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-section">
+                    <div class="header-label">BUILDING</div>
+                    <div class="header-value">MAIN-01</div>
+                </div>
+                <div class="node-indicator">FLOOR <span class="node-value">02</span></div>
+                <div class="node-indicator">ROOMS <span class="node-value">18</span></div>
+                <div class="node-indicator">SENSORS <span class="node-value">127</span></div>
+                <div class="node-indicator">ACTIVE <span class="node-value">124</span></div>
+                <div class="node-indicator">ALERTS <span class="node-value" style="color:#ff6b35;">03</span></div>
+            </div>
+        </div>
+
+        <!-- Left Panel -->
+        <div class="left-panel">
+            <!-- Status Display -->
+            <div class="panel">
+                <div class="status-codes">
+                    <div class="status-code">
+                        <div class="panel-title">TOTAL ROOMS</div>
+                        <div class="code-value">18</div>
+                    </div>
+                    <div class="status-code">
+                        <div class="panel-title">OCCUPIED</div>
+                        <div class="code-value">12</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Floor Plan -->
+            <div class="panel floor-plan">
+                <svg viewBox="0 0 400 280">
+                    <!-- Main outline -->
+                    <rect x="50" y="40" width="300" height="200" fill="none" stroke="#00ffff" stroke-width="2" opacity="0.6"/>
+                    
+                    <!-- Vertical dividers -->
+                    <line x1="150" y1="40" x2="150" y2="240" stroke="#00ffff" stroke-width="1" opacity="0.4"/>
+                    <line x1="250" y1="40" x2="250" y2="240" stroke="#00ffff" stroke-width="1" opacity="0.4"/>
+                    
+                    <!-- Horizontal dividers -->
+                    <line x1="50" y1="120" x2="350" y2="120" stroke="#00ffff" stroke-width="1" opacity="0.4"/>
+                    <line x1="50" y1="160" x2="350" y2="160" stroke="#00ffff" stroke-width="1" opacity="0.4"/>
+                    
+                    <!-- Room labels -->
+                    <circle cx="100" cy="80" r="4" fill="#00ff88" opacity="0.8"/>
+                    <circle cx="200" cy="80" r="4" fill="#00ff88" opacity="0.8"/>
+                    <circle cx="300" cy="80" r="4" fill="#4fc3f7" opacity="0.8"/>
+                    <circle cx="100" cy="140" r="4" fill="#00ff88" opacity="0.8"/>
+                    <circle cx="200" cy="140" r="4" fill="#ff6b35" opacity="0.8"/>
+                    <circle cx="300" cy="140" r="4" fill="#00ff88" opacity="0.8"/>
+                    <circle cx="100" cy="200" r="4" fill="#4fc3f7" opacity="0.8"/>
+                    <circle cx="200" cy="200" r="4" fill="#00ff88" opacity="0.8"/>
+                    <circle cx="300" cy="200" r="4" fill="#00ff88" opacity="0.8"/>
+                    
+                    <!-- Connections -->
+                    <line x1="100" y1="80" x2="100" y2="140" stroke="#00ff88" stroke-width="0.5" opacity="0.3"/>
+                    <line x1="200" y1="80" x2="200" y2="200" stroke="#4fc3f7" stroke-width="0.5" opacity="0.3"/>
+                </svg>
+                <div class="floor-label" style="bottom:8px;left:8px;">FLOOR PLAN 2.0</div>
+                <div class="floor-label" style="bottom:8px;right:8px;">SCALE 1:100</div>
+            </div>
+
+            <!-- Control Buttons -->
+            <div class="panel button-grid">
+                <div class="btn active">ALL ROOMS</div>
+                <div class="btn">OCCUPIED</div>
+                <div class="btn">VACANT</div>
+                <div class="btn">OFFLINE</div>
+            </div>
+
+            <!-- Energy Usage -->
+            <div class="panel">
+                <div class="panel-title">ENERGY CONSUMPTION (24H)</div>
+                <div class="bar-graph">
+                    <div class="bar active" style="height:40%;"></div>
+                    <div class="bar active" style="height:35%;"></div>
+                    <div class="bar active orange" style="height:80%;"></div>
+                    <div class="bar active orange" style="height:70%;"></div>
+                    <div class="bar active" style="height:45%;"></div>
+                    <div class="bar active" style="height:50%;"></div>
+                    <div class="bar active" style="height:30%;"></div>
+                    <div class="bar active" style="height:55%;"></div>
+                    <div class="bar active" style="height:25%;"></div>
+                    <div class="bar active" style="height:60%;"></div>
+                    <div class="bar active" style="height:75%;"></div>
+                    <div class="bar active" style="height:40%;"></div>
+                    <div class="bar active" style="height:35%;"></div>
+                    <div class="bar active" style="height:45%;"></div>
+                    <div class="bar active orange" style="height:90%;"></div>
+                    <div class="bar active" style="height:55%;"></div>
+                </div>
+                <div class="graph-info">
+                    <span>PEAK: 14:30</span>
+                    <span>AVG: 4.2 kW</span>
+                    <span>TOTAL: 87.5 kWh</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Middle Panel -->
+        <div class="middle-panel">
+            <!-- System Summary -->
+            <div class="panel">
+                <div class="panel-title">SYSTEM SUMMARY</div>
+                <div style="margin-bottom:8px;">
+                    <div style="font-size:6px;color:#4fc3f7;margin-bottom:3px;">BUILDING IDENTIFIER</div>
+                    <div style="font-size:8px;color:#fff;">RESIDENCE-MAIN-FLOOR-02</div>
+                </div>
+                <div style="margin-bottom:8px;">
+                    <div style="font-size:6px;color:#4fc3f7;margin-bottom:4px;">SENSOR STATUS MATRIX</div>
+                    <div class="matrix-grid">
+                        <div class="matrix-dot green"></div>
+                        <div class="matrix-dot green"></div>
+                        <div class="matrix-dot"></div>
+                        <div class="matrix-dot green"></div>
+                        <div class="matrix-dot"></div>
+                        <div class="matrix-dot green"></div>
+                        <div class="matrix-dot green"></div>
+                        <div class="matrix-dot"></div>
+                        <div class="matrix-dot green"></div>
+                        <div class="matrix-dot"></div>
+                        <div class="matrix-dot green"></div>
+                        <div class="matrix-dot green"></div>
+                        <div class="matrix-dot"></div>
+                        <div class="matrix-dot active"></div>
+                        <div class="matrix-dot"></div>
+                        <div class="matrix-dot green"></div>
+                        <div class="matrix-dot cyan"></div>
+                        <div class="matrix-dot green"></div>
+                        <div class="matrix-dot"></div>
+                        <div class="matrix-dot green"></div>
+                        <div class="matrix-dot active"></div>
+                        <div class="matrix-dot"></div>
+                        <div class="matrix-dot cyan"></div>
+                        <div class="matrix-dot green"></div>
+                    </div>
+                </div>
+                <div>
+                    <div style="font-size:6px;color:#4fc3f7;margin-bottom:4px;">AVERAGE TEMPERATURE PER FLOOR</div>
+                    <div class="temp-bars">
+                        <div class="temp-bar">
+                            <div class="temp-fill" style="width:72%;"></div>
+                            <span class="temp-label">EG: 21.5°C</span>
+                        </div>
+                        <div class="temp-bar">
+                            <div class="temp-fill" style="width:68%;"></div>
+                            <span class="temp-label">OG1: 20.4°C</span>
+                        </div>
+                        <div class="temp-bar">
+                            <div class="temp-fill" style="width:75%;"></div>
+                            <span class="temp-label">OG2: 22.5°C</span>
+                        </div>
+                        <div class="temp-bar">
+                            <div class="temp-fill" style="width:58%;"></div>
+                            <span class="temp-label">DG: 17.2°C</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Climate Control -->
+            <div class="panel">
+                <div class="panel-title">CLIMATE CONTROL OVERVIEW</div>
+                <div class="climate-display">
+                    <div class="climate-ring" style="width:80%;height:80%;"></div>
+                    <div class="climate-ring" style="width:60%;height:60%;"></div>
+                    <div class="climate-ring" style="width:40%;height:40%;"></div>
+                    <div class="climate-value">21.3</div>
+                    <div class="climate-unit">DURCHSCHNITT °C</div>
+                    <div class="climate-sweep"></div>
+                </div>
+            </div>
+
+            <!-- Security Status -->
+            <div class="panel">
+                <div class="panel-title">SECURITY & WINDOW STATUS</div>
+                <div class="security-grid">
+                    <div class="security-cell active"></div>
+                    <div class="security-cell active"></div>
+                    <div class="security-cell"></div>
+                    <div class="security-cell active"></div>
+                    <div class="security-cell active"></div>
+                    <div class="security-cell"></div>
+                    <div class="security-cell alert"></div>
+                    <div class="security-cell active"></div>
+                    <div class="security-cell"></div>
+                    <div class="security-cell active"></div>
+                    <div class="security-cell active"></div>
+                    <div class="security-cell active"></div>
+                    <div class="security-cell"></div>
+                    <div class="security-cell active"></div>
+                    <div class="security-cell alert"></div>
+                    <div class="security-cell"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Room Cards -->
+        <div class="right-panel">
+            <div class="fleet-title">ROOM MONITORING SYSTEM</div>
+            <div class="room-grid">
+                <!-- Wohnzimmer -->
+                <div class="room-card">
+                    <div class="room-header">
+                        <div class="room-name">WOHNZIMMER</div>
+                        <div class="room-indicators">
+                            <div class="indicator-ring active"></div>
+                            <div class="indicator-ring active"></div>
+                        </div>
+                    </div>
+                    <div class="room-info">
+                        <div class="info-item">
+                            <div class="info-label">TEMP</div>
+                            <div class="info-value">22.1°C</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">HUMID</div>
+                            <div class="info-value">45%</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">CO₂</div>
+                            <div class="info-value">420</div>
+                        </div>
+                    </div>
+                    <div class="room-status">
+                        <div class="status-dot on"></div>
+                        <div class="status-dot on"></div>
+                        <div class="status-dot on"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot on"></div>
+                        <div class="status-dot"></div>
+                    </div>
+                </div>
+
+                <!-- Küche -->
+                <div class="room-card">
+                    <div class="room-header">
+                        <div class="room-name">KÜCHE</div>
+                        <div class="room-indicators">
+                            <div class="indicator-ring active"></div>
+                            <div class="indicator-ring alert"></div>
+                        </div>
+                    </div>
+                    <div class="room-info">
+                        <div class="info-item">
+                            <div class="info-label">TEMP</div>
+                            <div class="info-value">24.5°C</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">HUMID</div>
+                            <div class="info-value">58%</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">CO₂</div>
+                            <div class="info-value">680</div>
+                        </div>
+                    </div>
+                    <div class="room-status">
+                        <div class="status-dot on"></div>
+                        <div class="status-dot on"></div>
+                        <div class="status-dot warn"></div>
+                        <div class="status-dot on"></div>
+                        <div class="status-dot on"></div>
+                        <div class="status-dot"></div>
+                    </div>
+                </div>
+
+                <!-- Schlafzimmer -->
+                <div class="room-card">
+                    <div class="room-header">
+                        <div class="room-name">SCHLAFZIMMER</div>
+                        <div class="room-indicators">
+                            <div class="indicator-ring"></div>
+                            <div class="indicator-ring"></div>
+                        </div>
+                    </div>
+                    <div class="room-info">
+                        <div class="info-item">
+                            <div class="info-label">TEMP</div>
+                            <div class="info-value">19.2°C</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">HUMID</div>
+                            <div class="info-value">42%</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">CO₂</div>
+                            <div class="info-value">390</div>
+                        </div>
+                    </div>
+                    <div class="room-status">
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                    </div>
+                </div>
+
+                <!-- Arbeitszimmer -->
+                <div class="room-card">
+                    <div class="room-header">
+                        <div class="room-name">ARBEITSZIMMER</div>
+                        <div class="room-indicators">
+                            <div class="indicator-ring active"></div>
+                            <div class="indicator-ring active"></div>
+                        </div>
+                    </div>
+                    <div class="room-info">
+                        <div class="info-item">
+                            <div class="info-label">TEMP</div>
+                            <div class="info-value">21.8°C</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">HUMID</div>
+                            <div class="info-value">48%</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">CO₂</div>
+                            <div class="info-value">510</div>
+                        </div>
+                    </div>
+                    <div class="room-status">
+                        <div class="status-dot on"></div>
+                        <div class="status-dot on"></div>
+                        <div class="status-dot on"></div>
+                        <div class="status-dot on"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot on"></div>
+                    </div>
+                </div>
+
+                <!-- Badezimmer -->
+                <div class="room-card">
+                    <div class="room-header">
+                        <div class="room-name">BADEZIMMER</div>
+                        <div class="room-indicators">
+                            <div class="indicator-ring active"></div>
+                            <div class="indicator-ring alert"></div>
+                        </div>
+                    </div>
+                    <div class="room-info">
+                        <div class="info-item">
+                            <div class="info-label">TEMP</div>
+                            <div class="info-value">23.5°C</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">HUMID</div>
+                            <div class="info-value">72%</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">CO₂</div>
+                            <div class="info-value">450</div>
+                        </div>
+                    </div>
+                    <div class="room-status">
+                        <div class="status-dot on"></div>
+                        <div class="status-dot warn"></div>
+                        <div class="status-dot on"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot on"></div>
+                        <div class="status-dot"></div>
+                    </div>
+                </div>
+
+                <!-- Kinderzimmer -->
+                <div class="room-card">
+                    <div class="room-header">
+                        <div class="room-name">KINDERZIMMER</div>
+                        <div class="room-indicators">
+                            <div class="indicator-ring active"></div>
+                            <div class="indicator-ring active"></div>
+                        </div>
+                    </div>
+                    <div class="room-info">
+                        <div class="info-item">
+                            <div class="info-label">TEMP</div>
+                            <div class="info-value">20.5°C</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">HUMID</div>
+                            <div class="info-value">46%</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">CO₂</div>
+                            <div class="info-value">430</div>
+                        </div>
+                    </div>
+                    <div class="room-status">
+                        <div class="status-dot on"></div>
+                        <div class="status-dot on"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot on"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot on"></div>
+                    </div>
+                </div>
+
+                <!-- Gästezimmer -->
+                <div class="room-card">
+                    <div class="room-header">
+                        <div class="room-name">GÄSTEZIMMER</div>
+                        <div class="room-indicators">
+                            <div class="indicator-ring"></div>
+                            <div class="indicator-ring"></div>
+                        </div>
+                    </div>
+                    <div class="room-info">
+                        <div class="info-item">
+                            <div class="info-label">TEMP</div>
+                            <div class="info-value">18.8°C</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">HUMID</div>
+                            <div class="info-value">40%</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">CO₂</div>
+                            <div class="info-value">380</div>
+                        </div>
+                    </div>
+                    <div class="room-status">
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                    </div>
+                </div>
+
+                <!-- Flur -->
+                <div class="room-card">
+                    <div class="room-header">
+                        <div class="room-name">FLUR</div>
+                        <div class="room-indicators">
+                            <div class="indicator-ring active"></div>
+                            <div class="indicator-ring"></div>
+                        </div>
+                    </div>
+                    <div class="room-info">
+                        <div class="info-item">
+                            <div class="info-label">TEMP</div>
+                            <div class="info-value">21.0°C</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">HUMID</div>
+                            <div class="info-value">44%</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">CO₂</div>
+                            <div class="info-value">400</div>
+                        </div>
+                    </div>
+                    <div class="room-status">
+                        <div class="status-dot on"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                    </div>
+                </div>
+
+                <!-- Abstellraum -->
+                <div class="room-card">
+                    <div class="room-header">
+                        <div class="room-name">ABSTELLRAUM</div>
+                        <div class="room-indicators">
+                            <div class="indicator-ring"></div>
+                            <div class="indicator-ring"></div>
+                        </div>
+                    </div>
+                    <div class="room-info">
+                        <div class="info-item">
+                            <div class="info-label">TEMP</div>
+                            <div class="info-value">17.2°C</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">HUMID</div>
+                            <div class="info-value">52%</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">CO₂</div>
+                            <div class="info-value">410</div>
+                        </div>
+                    </div>
+                    <div class="room-status">
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                    </div>
+                </div>
+
+                <!-- Weitere 9 Räume... -->
+                <div class="room-card">
+                    <div class="room-header">
+                        <div class="room-name">KELLER</div>
+                        <div class="room-indicators">
+                            <div class="indicator-ring"></div>
+                            <div class="indicator-ring"></div>
+                        </div>
+                    </div>
+                    <div class="room-info">
+                        <div class="info-item">
+                            <div class="info-label">TEMP</div>
+                            <div class="info-value">16.5°C</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">HUMID</div>
+                            <div class="info-value">58%</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">CO₂</div>
+                            <div class="info-value">420</div>
+                        </div>
+                    </div>
+                    <div class="room-status">
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                    </div>
+                </div>
+
+                <div class="room-card">
+                    <div class="room-header">
+                        <div class="room-name">GARAGE</div>
+                        <div class="room-indicators">
+                            <div class="indicator-ring active"></div>
+                            <div class="indicator-ring"></div>
+                        </div>
+                    </div>
+                    <div class="room-info">
+                        <div class="info-item">
+                            <div class="info-label">TEMP</div>
+                            <div class="info-value">15.8°C</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">HUMID</div>
+                            <div class="info-value">55%</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">CO₂</div>
+                            <div class="info-value">480</div>
+                        </div>
+                    </div>
+                    <div class="room-status">
+                        <div class="status-dot on"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                    </div>
+                </div>
+
+                <div class="room-card">
+                    <div class="room-header">
+                        <div class="room-name">ESSZIMMER</div>
+                        <div class="room-indicators">
+                            <div class="indicator-ring active"></div>
+                            <div class="indicator-ring active"></div>
+                        </div>
+                    </div>
+                    <div class="room-info">
+                        <div class="info-item">
+                            <div class="info-label">TEMP</div>
+                            <div class="info-value">22.3°C</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">HUMID</div>
+                            <div class="info-value">47%</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">CO₂</div>
+                            <div class="info-value">460</div>
+                        </div>
+                    </div>
+                    <div class="room-status">
+                        <div class="status-dot on"></div>
+                        <div class="status-dot on"></div>
+                        <div class="status-dot on"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot on"></div>
+                        <div class="status-dot"></div>
+                    </div>
+                </div>
+
+                <div class="room-card">
+                    <div class="room-header">
+                        <div class="room-name">WINTERGARTEN</div>
+                        <div class="room-indicators">
+                            <div class="indicator-ring active"></div>
+                            <div class="indicator-ring active"></div>
+                        </div>
+                    </div>
+                    <div class="room-info">
+                        <div class="info-item">
+                            <div class="info-label">TEMP</div>
+                            <div class="info-value">25.2°C</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">HUMID</div>
+                            <div class="info-value">52%</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">CO₂</div>
+                            <div class="info-value">390</div>
+                        </div>
+                    </div>
+                    <div class="room-status">
+                        <div class="status-dot on"></div>
+                        <div class="status-dot on"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot on"></div>
+                        <div class="status-dot on"></div>
+                        <div class="status-dot"></div>
+                    </div>
+                </div>
+
+                <div class="room-card">
+                    <div class="room-header">
+                        <div class="room-name">HAUSWIRTSCHAFT</div>
+                        <div class="room-indicators">
+                            <div class="indicator-ring active"></div>
+                            <div class="indicator-ring"></div>
+                        </div>
+                    </div>
+                    <div class="room-info">
+                        <div class="info-item">
+                            <div class="info-label">TEMP</div>
+                            <div class="info-value">20.1°C</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">HUMID</div>
+                            <div class="info-value">60%</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">CO₂</div>
+                            <div class="info-value">440</div>
+                        </div>
+                    </div>
+                    <div class="room-status">
+                        <div class="status-dot on"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot on"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                    </div>
+                </div>
+
+                <div class="room-card">
+                    <div class="room-header">
+                        <div class="room-name">DACHBODEN</div>
+                        <div class="room-indicators">
+                            <div class="indicator-ring"></div>
+                            <div class="indicator-ring"></div>
+                        </div>
+                    </div>
+                    <div class="room-info">
+                        <div class="info-item">
+                            <div class="info-label">TEMP</div>
+                            <div class="info-value">28.5°C</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">HUMID</div>
+                            <div class="info-value">35%</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">CO₂</div>
+                            <div class="info-value">380</div>
+                        </div>
+                    </div>
+                    <div class="room-status">
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                    </div>
+                </div>
+
+                <div class="room-card">
+                    <div class="room-header">
+                        <div class="room-name">TERRASSE</div>
+                        <div class="room-indicators">
+                            <div class="indicator-ring active"></div>
+                            <div class="indicator-ring active"></div>
+                        </div>
+                    </div>
+                    <div class="room-info">
+                        <div class="info-item">
+                            <div class="info-label">TEMP</div>
+                            <div class="info-value">12.8°C</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">HUMID</div>
+                            <div class="info-value">68%</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">CO₂</div>
+                            <div class="info-value">380</div>
+                        </div>
+                    </div>
+                    <div class="room-status">
+                        <div class="status-dot on"></div>
+                        <div class="status-dot on"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                    </div>
+                </div>
+
+                <div class="room-card">
+                    <div class="room-header">
+                        <div class="room-name">GARTEN</div>
+                        <div class="room-indicators">
+                            <div class="indicator-ring active"></div>
+                            <div class="indicator-ring active"></div>
+                        </div>
+                    </div>
+                    <div class="room-info">
+                        <div class="info-item">
+                            <div class="info-label">TEMP</div>
+                            <div class="info-value">11.5°C</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">HUMID</div>
+                            <div class="info-value">75%</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">LICHT</div>
+                            <div class="info-value">280lx</div>
+                        </div>
+                    </div>
+                    <div class="room-status">
+                        <div class="status-dot on"></div>
+                        <div class="status-dot on"></div>
+                        <div class="status-dot on"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                    </div>
+                </div>
+
+                <div class="room-card">
+                    <div class="room-header">
+                        <div class="room-name">EINGANG</div>
+                        <div class="room-indicators">
+                            <div class="indicator-ring active"></div>
+                            <div class="indicator-ring active"></div>
+                        </div>
+                    </div>
+                    <div class="room-info">
+                        <div class="info-item">
+                            <div class="info-label">TEMP</div>
+                            <div class="info-value">19.5°C</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">HUMID</div>
+                            <div class="info-value">49%</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">CO₂</div>
+                            <div class="info-value">410</div>
+                        </div>
+                    </div>
+                    <div class="room-status">
+                        <div class="status-dot on"></div>
+                        <div class="status-dot on"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot on"></div>
+                        <div class="status-dot"></div>
+                        <div class="status-dot"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Device IDs -->
+        <div class="bottom-ids">
+            <div class="id-box">
+                <div class="id-label">SENSOR IDENT</div>
+                <div class="id-value">H1</div>
+                <div class="id-code">TMP-001</div>
+            </div>
+            <div class="id-box">
+                <div class="id-label">SENSOR IDENT</div>
+                <div class="id-value">D5</div>
+                <div class="id-code">HUM-002</div>
+            </div>
+            <div class="id-box">
+                <div class="id-label">SENSOR IDENT</div>
+                <div class="id-value">F7</div>
+                <div class="id-code">CO2-003</div>
+            </div>
+            <div class="id-box">
+                <div class="id-label">SENSOR IDENT</div>
+                <div class="id-value">J2</div>
+                <div class="id-code">MOT-004</div>
+            </div>
+            <div class="id-box">
+                <div class="id-label">SENSOR IDENT</div>
+                <div class="id-value">Z7</div>
+                <div class="id-code">LGT-005</div>
+            </div>
+            <div class="id-box">
+                <div class="id-label">SENSOR IDENT</div>
+                <div class="id-value">Y2</div>
+                <div class="id-code">WIN-006</div>
+            </div>
+            <div class="id-box">
+                <div class="id-label">SENSOR IDENT</div>
+                <div class="id-value">H7</div>
+                <div class="id-code">DOR-007</div>
+            </div>
+            <div class="id-box">
+                <div class="id-label">SENSOR IDENT</div>
+                <div class="id-value">U5</div>
+                <div class="id-code">CAM-008</div>
+            </div>
+            <div class="id-box">
+                <div class="id-label">SENSOR IDENT</div>
+                <div class="id-value">Y2</div>
+                <div class="id-code">AIR-009</div>
+            </div>
+            <div class="id-box">
+                <div class="id-label">SENSOR IDENT</div>
+                <div class="id-value">X7</div>
+                <div class="id-code">PRS-010</div>
+            </div>
+            <div class="id-box">
+                <div class="id-label">SENSOR IDENT</div>
+                <div class="id-value">A2</div>
+                <div class="id-code">SMK-011</div>
+            </div>
+            <div class="id-box">
+                <div class="id-label">SENSOR IDENT</div>
+                <div class="id-value">B4</div>
+                <div class="id-code">WAT-012</div>
+            </div>
+            <div class="id-box">
+                <div class="id-label">SENSOR IDENT</div>
+                <div class="id-value">Q7</div>
+                <div class="id-code">ENR-013</div>
+            </div>
+            <div class="id-box">
+                <div class="id-label">SENSOR IDENT</div>
+                <div class="id-value">D2</div>
+                <div class="id-code">THM-014</div>
+            </div>
+            <div class="id-box">
+                <div class="id-label">SENSOR IDENT</div>
+                <div class="id-value">Y5</div>
+                <div class="id-code">SEC-015</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Generate stars
+        var starsContainer = document.getElementById('stars');
+        for (var i = 0; i < 200; i++) {
+            var star = document.createElement('div');
+            star.className = 'star';
+            var size = Math.random() * 2 + 0.5;
+            star.style.width = size + 'px';
+            star.style.height = size + 'px';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 3 + 's';
+            star.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            starsContainer.appendChild(star);
+        }
+
+        // Simulate real-time updates
+        setInterval(function() {
+            // Update random temperature
+            var tempValues = document.querySelectorAll('.info-value');
+            if (tempValues.length > 0) {
+                var randomIndex = Math.floor(Math.random() * tempValues.length / 3) * 3;
+                if (tempValues[randomIndex]) {
+                    var currentTemp = parseFloat(tempValues[randomIndex].textContent);
+                    var newTemp = (currentTemp + (Math.random() - 0.5) * 0.2).toFixed(1);
+                    tempValues[randomIndex].textContent = newTemp + '°C';
+                }
+            }
+
+            // Update climate display
+            var climateValue = document.querySelector('.climate-value');
+            if (climateValue) {
+                var currentClimate = parseFloat(climateValue.textContent);
+                var newClimate = (currentClimate + (Math.random() - 0.5) * 0.1).toFixed(1);
+                climateValue.textContent = newClimate;
+            }
+        }, 3000);
+
+        // Room card click handler
+        var roomCards = document.querySelectorAll('.room-card');
+        roomCards.forEach(function(card) {
+            card.addEventListener('click', function() {
+                var roomName = this.querySelector('.room-name').textContent;
+                console.log('Room selected:', roomName);
+                // Hier könntest du eine Detailansicht öffnen
+            });
+        });
+
+        // ID box click handler
+        var idBoxes = document.querySelectorAll('.id-box');
+        idBoxes.forEach(function(box) {
+            box.addEventListener('click', function() {
+                var sensorId = this.querySelector('.id-value').textContent;
+                console.log('Sensor selected:', sensorId);
+                // Hier könntest du Sensor-Details anzeigen
+            });
+        });
+    </script>
+</body>
+</html>
