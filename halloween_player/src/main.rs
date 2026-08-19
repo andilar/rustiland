@@ -130,19 +130,21 @@ async fn play_main() -> Result<HttpResponse> {
     }
     
     match Command::new("aplay")
-        .arg("-D")
-        .arg("plughw:1,0")
-        .arg(temp_path)
-        .spawn()
-    {
-        Ok(_) => {
-            println!("[PLAY MAIN]");
-            Ok(HttpResponse::Ok()
-                .body("PLAYING MAIN SOUND"))
-        },
-        Err(e) => Ok(HttpResponse::InternalServerError()
-            .body(format!("ERROR: {}", e))),
-    }
+    .arg("-D")
+    .arg("plughw:1,0")
+    .arg(temp_path)
+    .spawn()
+{
+    Ok(mut child) => {
+        std::thread::spawn(move || {
+            let _ = child.wait(); // reaped den Prozess, sobald aplay fertig ist
+        });
+        println!("[PLAY MAIN]");
+        Ok(HttpResponse::Ok().body("PLAYING MAIN SOUND"))
+    },
+    Err(e) => Ok(HttpResponse::InternalServerError()
+        .body(format!("ERROR: {}", e))),
+}
 }
 
 // Sound auswählen
