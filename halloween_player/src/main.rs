@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io::Write;
 use std::sync::{Arc, Mutex};
+use actix_multipart::Multipart;
+use futures_util::StreamExt as _;
 
 // WAV-Datei direkt ins Binary einbetten (optional)
 static MAIN_SOUND: &[u8] = include_bytes!("../audio/main_sound.wav");
@@ -276,6 +278,59 @@ async fn index() -> Result<HttpResponse> {
         .body(html))
 }
 
+// Datei-Upload: speichert eine hochgeladene WAV in /home/andilar/audio/
+async fn upload_sound(mut payload: Multipart) -> Result<HttpResponse> {
+    while let Some(item) = payload.next().await {
+        let mut field = match item {
+            Ok(f) => f,
+            Err(e) => return Ok(HttpResponse::BadRequest()
+                .body(format!("ERROR: MULTIPART: {}", e))),
+        };
+
+        // Dateinamen aus dem Feld holen, hart auf Basename + .wav begrenzen
+        let raw_name = field
+            .content_disposition()
+            .and_then(|cd| cd.get_filename().map(|s| s.to_string()))
+            .unwrap_or_else(|| "message.wav".to_string());
+
+        // Pfad-Traversal verhindern: nur Dateiname, nur .wav erlauben
+        let safe_name = std::path::Path::new(&raw_name)
+            .file_name()
+            .and_then(|s| s.to_str())
+            .unwrap_or("message.wav")
+            .replace(|c: char| !c.is_ascii_alphanumeric() && c != '.' && c != '_' && c != '-', "_");
+
+        if !safe_name.to_ascii_lowercase().ends_with(".wav") {
+            return Ok(HttpResponse::BadRequest().body("ERROR: ONLY .wav ALLOWED"));
+        }
+
+        let dest = format!("/home/andilar/audio/{}", safe_name);
+        let mut f = match std::fs::File::create(&dest) {
+            Ok(f) => f,
+            Err(e) => return Ok(HttpResponse::InternalServerError()
+                .body(format!("ERROR: CREATE FAILED: {}", e))),
+        };
+
+        while let Some(chunk) = field.next().await {
+            match chunk {
+                Ok(bytes) => {
+                    if let Err(e) = f.write_all(&bytes) {
+                        return Ok(HttpResponse::InternalServerError()
+                            .body(format!("ERROR: WRITE FAILED: {}", e)));
+                    }
+                }
+                Err(e) => return Ok(HttpResponse::BadRequest()
+                    .body(format!("ERROR: CHUNK: {}", e))),
+            }
+        }
+
+        println!("[UPLOAD] {}", safe_name);
+        return Ok(HttpResponse::Ok().body(format!("UPLOADED: {}", safe_name)));
+    }
+
+    Ok(HttpResponse::BadRequest().body("ERROR: NO FILE"))
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let app_state = web::Data::new(AppState {
@@ -299,6 +354,7 @@ async fn main() -> std::io::Result<()> {
             .route("/play", web::get().to(play_custom))
             .route("/sounds", web::get().to(list_sounds))
             .route("/status", web::get().to(get_status))
+            .route("/upload", web::post().to(upload_sound))
     })
     .bind("0.0.0.0:8080")?
     .run()
