@@ -2,9 +2,11 @@ name: Rust
 
 on:
   push:
-    branches: [ "master" ]
   pull_request:
-    branches: [ "master" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 env:
   CARGO_TERM_COLOR: always
@@ -12,15 +14,45 @@ env:
 
 jobs:
   build:
+    name: HTTP server / build and test
     defaults:
       run:
         working-directory: ./web/http_server_from_scratch
-    
+
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+    - name: Install stable Rust
+      run: |
+        rustup toolchain install stable --profile minimal
+        rustup default stable
     - name: Build
       run: cargo build --release
     - name: Run tests
       run: cargo test --verbose
+
+  parallel_max:
+    name: parallel_max / format, build and test
+    defaults:
+      run:
+        working-directory: ./learning/parallel_max
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install stable Rust and rustfmt
+      run: |
+        rustup toolchain install stable --profile minimal --component rustfmt
+        rustup default stable
+    - name: Check formatting
+      run: cargo fmt --check
+    - name: Build
+      run: cargo build --release
+    - name: Run tests
+      run: cargo test --verbose
+    - name: Run example
+      run: cargo run --release

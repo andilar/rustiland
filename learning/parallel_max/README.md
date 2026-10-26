@@ -15,11 +15,38 @@ cd learning/parallel_max
 cargo run
 ```
 
-## Stand und bekannte Einschränkung
+Erwartete Ausgabe:
 
-Der Algorithmus ist implementiert, aber das Beispiel endet derzeit mit einer fehlgeschlagenen Assertion: Das enthaltene Array hat das Maximum `112332`, die Assertion erwartet `25`. Der Startbefehl demonstriert daher aktuell diesen Fehler. Für die Umstrukturierung wurde das Verhalten beibehalten.
+```text
+Maximum: 112332
+```
 
-Das Beispiel dient zum Lernen; die vielen kurzlebigen Threads sind keine Empfehlung für eine effiziente Maximumsuche in kleinen Arrays. Eigene Tests fehlen bislang.
+## Tests
+
+```sh
+cargo test
+```
+
+Fünf Tests prüfen das Beispielarray, leere Eingaben, Einzelwerte und Paare, ausschließlich negative Zahlen sowie ungerade Längen, doppelte Maxima und die Grenzen von `i32`. Leere Eingaben liefern `None`.
+
+## GitHub Actions
+
+Der [Rust-Workflow](../../.github/workflows/rust.yml) prüft das Projekt bei Pushes und Pull Requests in einem eigenen Ubuntu-Job mit der stabilen Rust-Toolchain:
+
+```sh
+cargo fmt --check
+cargo build --release
+cargo test --verbose
+cargo run --release
+```
+
+Nach dem Push sind die Ergebnisse im GitHub-Reiter **Actions** unter **Rust** sichtbar. Dort kann der Workflow über **Run workflow** auch manuell für einen Branch gestartet werden, sobald die Workflow-Datei im Standardbranch vorhanden ist. Der Schritt **Run example** protokolliert bei erfolgreichem Lauf `Maximum: 112332`.
+
+## Stand und Einschränkung
+
+Die ursprünglich falsche Assertion auf `25` wurde durch eine Ausgabe des tatsächlichen Maximums ersetzt. Ein Regressionstest sichert für das Beispielarray den Wert `112332` ab.
+
+Das Beispiel dient zum Lernen; die vielen kurzlebigen Threads sind keine Empfehlung für eine effiziente Maximumsuche in kleinen Arrays.
 
 ## Herkunft
 

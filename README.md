@@ -7,7 +7,7 @@ Sammelbecken kleiner Rust-Projekte: Lernbeispiele, Webserver, Hardware-Prototype
 | Bereich | Projekt | Zweck | Plattform | Stand |
 |---|---|---|---|---|
 | Lernen | [hello_ferris](learning/hello_ferris/README.md) | Ferris-Begrüßung in der Konsole | Desktop | Lernbeispiel |
-| Lernen | [parallel_max](learning/parallel_max/README.md) | Parallele Maximumsuche mit Crossbeam | Desktop | Lernbeispiel; Assertion noch fehlerhaft |
+| Lernen | [parallel_max](learning/parallel_max/README.md) | Parallele Maximumsuche mit Crossbeam | Desktop | Lernbeispiel mit Regressionstest und Randfalltests |
 | Web | [http_server_from_scratch](web/http_server_from_scratch/README.md) | HTTP-Server ohne Framework | Desktop/Linux | Lernserver |
 | Web | [restor](web/restor/README.md) | Axum-API, HTML-Seiten und Logging | Desktop/Linux | Web-Prototyp; JSON-Tests benötigen Korrektur |
 | Hardware | [gpio_led_blink](hardware/raspberry_pi/gpio_led_blink/README.md) | LED über GPIO blinken lassen | Raspberry Pi/Linux | Hardware-Lernbeispiel |
@@ -76,4 +76,9 @@ Die jeweilige Projekt-README beschreibt Voraussetzungen, Startbefehle und Einsch
 
 ## Automatische Prüfung
 
-[GitHub Actions](.github/workflows/rust.yml) baut und testet `web/http_server_from_scratch` auf Ubuntu. Die anderen Projekte sind derzeit nicht Teil dieser CI-Prüfung.
+[GitHub Actions](.github/workflows/rust.yml) führt bei Pushes und Pull Requests zwei unabhängige Jobs auf Ubuntu mit der stabilen Rust-Toolchain aus:
+
+- `http_server_from_scratch`: Release-Build und Tests.
+- `parallel_max`: Formatprüfung, Release-Build, fünf Tests und ein Probelauf des Beispiels.
+
+Der Workflow lässt sich außerdem im GitHub-Reiter **Actions** über **Rust → Run workflow** manuell starten. Die übrigen Projekte sind derzeit nicht Teil dieser CI-Prüfung.
