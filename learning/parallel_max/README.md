@@ -31,7 +31,7 @@ Fünf Tests prüfen das Beispielarray, leere Eingaben, Einzelwerte und Paare, au
 
 ## GitHub Actions
 
-Der [Rust-Workflow](../../.github/workflows/rust.yml) prüft das Projekt bei Pushes und Pull Requests in einem eigenen Ubuntu-Job mit der stabilen Rust-Toolchain:
+Der [Rust-Workflow](../../.github/workflows/rust.yml) prüft das Projekt bei Pushes und Pull Requests in einem eigenen Job auf Ubuntu 24.04 mit der stabilen Rust-Toolchain:
 
 ```sh
 cargo fmt --check

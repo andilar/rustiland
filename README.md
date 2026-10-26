@@ -76,7 +76,7 @@ Die jeweilige Projekt-README beschreibt Voraussetzungen, Startbefehle und Einsch
 
 ## Automatische Prüfung
 
-[GitHub Actions](.github/workflows/rust.yml) führt bei Pushes und Pull Requests zwei unabhängige Jobs auf Ubuntu mit der stabilen Rust-Toolchain aus:
+[GitHub Actions](.github/workflows/rust.yml) führt bei Pushes und Pull Requests zwei unabhängige Jobs auf Ubuntu 24.04 mit der stabilen Rust-Toolchain aus. Die Ubuntu-Version ist explizit festgelegt, damit ein Wechsel des Labels `ubuntu-latest` die Betriebssystemversion nicht automatisch verändert.
 
 - `http_server_from_scratch`: Release-Build und Tests.
 - `parallel_max`: Formatprüfung, Release-Build, fünf Tests und ein Probelauf des Beispiels.

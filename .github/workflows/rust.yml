@@ -19,7 +19,7 @@ jobs:
       run:
         working-directory: ./web/http_server_from_scratch
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
 
     steps:
@@ -39,7 +39,7 @@ jobs:
       run:
         working-directory: ./learning/parallel_max
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
 
     steps:

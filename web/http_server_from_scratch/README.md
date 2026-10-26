@@ -32,7 +32,7 @@ PUBLIC_PATH=/absoluter/pfad/zu/webseiten cargo run
 
 ## Stand
 
-Lernimplementierung mit sequenzieller Verarbeitung und einem festen Lesepuffer von 1024 Bytes. Kein vollständiger HTTP-Server für den Produktivbetrieb. Bisher keine eigenen Tests. Der GitHub-Actions-Workflow baut und testet dieses Projekt auf Ubuntu.
+Lernimplementierung mit sequenzieller Verarbeitung und einem festen Lesepuffer von 1024 Bytes. Kein vollständiger HTTP-Server für den Produktivbetrieb. Bisher keine eigenen Tests. Der GitHub-Actions-Workflow baut und testet dieses Projekt auf Ubuntu 24.04.
 
 ## Prüfen
 
