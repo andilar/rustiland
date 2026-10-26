@@ -1,5 +1,6 @@
 [package]
-name = "rust_gpiozero_demo"
+name = "gpio_led_blink"
+description = "LED-Blinkbeispiel fuer Raspberry Pi mit rust_gpiozero"
 version = "0.1.0"
 authors = ["Andre Larberg <andilar@gmail.com>"]
 edition = "2018"

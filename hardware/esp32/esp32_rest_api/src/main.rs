@@ -1,4 +1,4 @@
-// Für rustyvibes Projekt
+// ESP32 REST API
 use anyhow::Result;
 use embedded_svc::http::Method;
 use embedded_svc::io::Write;

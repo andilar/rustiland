@@ -21,11 +21,6 @@ Cargo.lock
 # End of https://www.toptal.com/developers/gitignore/api/rust
 
 /.vscode
-hello_cargo/target/.rustc_info.json
-hello_cargo/target/rls/.rustc_info.json
-hello_cargo/target/rls/.rustc_info.json
-hello_cargo/target/.rustc_info.json
-hello_cargo/target/.rustc_info.json
 
 # Mac OS
 .DS*

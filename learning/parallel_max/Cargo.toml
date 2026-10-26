@@ -1,10 +1,11 @@
 [package]
-name = "hello_cargo"
+name = "parallel_max"
+description = "Parallele Maximumsuche mit Crossbeam-Threads"
 version = "0.1.0"
-authors = ["andilar"]
+authors = ["andilar@gmail.com"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-ferris-says = "0.2"
+crossbeam = "0.8.0"

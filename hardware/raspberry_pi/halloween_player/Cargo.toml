@@ -1,5 +1,6 @@
 [package]
 name = "halloween_player"
+description = "Webgesteuerter Soundplayer und Tuerklingel fuer Raspberry Pi"
 version = "0.1.0"
 edition = "2021"
 

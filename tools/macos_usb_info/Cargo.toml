@@ -1,5 +1,6 @@
 [package]
-name = "usbinfo"
+name = "macos_usb_info"
+description = "macOS-CLI zur Anzeige von USB-Geraeten und Verbindungsgeschwindigkeiten"
 version = "0.1.0"
 edition = "2021"
 

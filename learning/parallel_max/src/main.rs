@@ -2,7 +2,7 @@
 use crossbeam;
 
 fn main() {
-    println!("application rustigy started! ");
+    println!("parallel_max started! ");
     let arr = &[1, 25, -4, 10, 1223,1,112332,123];
     let max = find_max(arr);
     assert_eq!(max, Some(25));

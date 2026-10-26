@@ -9,15 +9,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'rustyvibes'",
+            "name": "Debug executable 'esp32_rest_api'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=rustyvibes",
-                    "--package=rustyvibes"
+                    "--bin=esp32_rest_api",
+                    "--package=esp32_rest_api"
                 ],
                 "filter": {
-                    "name": "rustyvibes",
+                    "name": "esp32_rest_api",
                     "kind": "bin"
                 }
             },
@@ -27,16 +27,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'rustyvibes'",
+            "name": "Debug unit tests in executable 'esp32_rest_api'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=rustyvibes",
-                    "--package=rustyvibes"
+                    "--bin=esp32_rest_api",
+                    "--package=esp32_rest_api"
                 ],
                 "filter": {
-                    "name": "rustyvibes",
+                    "name": "esp32_rest_api",
                     "kind": "bin"
                 }
             },
